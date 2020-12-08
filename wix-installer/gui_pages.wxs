@@ -9,6 +9,7 @@
     <!-- UI properties -->
     <Property Id='ASSOCIATE_VNC_EXTENSION' Secure='yes'> 1 </Property>
     <Property Id='REGISTER_AS_SERVICE' Secure='yes'> 1 </Property>
+    <Property Id='SERVICE_ONLY' Secure='yes'></Property>
     <Property Id='ADD_FIREWALL_EXCEPTION' Secure='yes'> 1 </Property>
     <Property Id='ALLOW_SAS' Secure='yes'> 1 </Property>
 
@@ -32,11 +33,22 @@
         <Control Id="ServiceConfLabel" Type="Text" X="15" Y="117" Width="300" Height="15" TabSkip="no" Text="TightVNC Service configuration:">
           <Condition Action="hide"> <![CDATA[&Server<>3]]> </Condition>
         </Control>
-        <Control Id="ServiceRegCheckBox" Type="CheckBox" X="25" Y="130" Width="300" Height="15" Property="REGISTER_AS_SERVICE" CheckBoxValue="1" Text="Register TightVNC Server as a system service (recommended)" >
+        <Control Id="ServiceRegCheckBox" 
+		Type="CheckBox" X="25" Y="130" Width="300" Height="15" 
+		Property="REGISTER_AS_SERVICE" 
+		CheckBoxValue="1" 
+		Text="Register TightVNC Server as a system service (recommended)" >
+          <Condition Action="hide"> <![CDATA[&Server<>3]]> </Condition>
+        </Control>
+        <Control Id="ServiceOnlyCheckBox"
+                 Type="CheckBox" X="25" Y="145" Width="300" Height="15"
+                 Property="SERVICE_ONLY" 
+		 CheckBoxValue="1"
+                 Text="Run only as a system service, disable user application mode">
           <Condition Action="hide"> <![CDATA[&Server<>3]]> </Condition>
         </Control>
         <Control Id="SasCheckBox"
-                 Type="CheckBox" X="25" Y="145" Width="300" Height="15"
+                 Type="CheckBox" X="25" Y="160" Width="300" Height="15"
                  Property="ALLOW_SAS" CheckBoxValue="1"
                  Text="Configure system to allow services simulate Ctrl-Alt-Del">
           <Condition Action="hide"> <![CDATA[&Server<>3]]> </Condition>

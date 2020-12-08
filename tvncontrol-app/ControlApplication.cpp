@@ -37,7 +37,6 @@
 #include "ShareAppCommand.h"
 #include "ControlAuth.h"
 #include "ConnectCommand.h"
-#include "DispatchCommand.h"
 #include "ShutdownCommand.h"
 
 #include "util/VncPassCrypt.h"
@@ -192,10 +191,6 @@ int ControlApplication::run()
       StringStorage hostName;
       cmdLineParser.getConnectHostName(&hostName);
       command = new ConnectCommand(m_serverControl, hostName.getString());
-    } else if (cmdLineParser.hasDispatchFlag()) {
-      StringStorage dispatcherSpec;
-      cmdLineParser.getDispatcherSpec(&dispatcherSpec);
-      command = new DispatchCommand(m_serverControl, dispatcherSpec.getString());
     } else if (cmdLineParser.hasShutdownFlag()) {
       command = new ShutdownCommand(m_serverControl);
     } else if (cmdLineParser.hasSharePrimaryFlag()) {

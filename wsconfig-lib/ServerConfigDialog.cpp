@@ -116,6 +116,9 @@ BOOL ServerConfigDialog::onCommand(UINT controlID, UINT notificationID)
     case IDC_SHOW_TVNCONTROL_ICON_CHECKBOX:
       onShowTrayIconCheckBoxClick();
       break;
+    case IDC_CONNECT_RDP_SESSION:
+      onConnectToRdpCheckBoxClick();
+      break;
     }
   } else if (notificationID == EN_UPDATE) {
     switch (controlID) {
@@ -239,6 +242,7 @@ void ServerConfigDialog::updateUI()
   m_useMirrorDriver.check(m_config->getMirrorIsAllowed());
 
   m_showTrayIcon.check(m_config->getShowTrayIconFlag());
+  m_connectToRdp.check(m_config->getConnectToRdpFlag());
 
   updateCheckboxesState();
   updateControlDependencies();
@@ -309,6 +313,7 @@ void ServerConfigDialog::apply()
   m_config->setMirrorAllowing(m_useMirrorDriver.isChecked());
   m_config->setD3DAllowing(m_useD3D.isChecked());
   m_config->setShowTrayIconFlag(m_showTrayIcon.isChecked());
+  m_config->setConnectToRdpFlag(m_connectToRdp.isChecked());
 }
 
 void ServerConfigDialog::initControls()
@@ -329,6 +334,7 @@ void ServerConfigDialog::initControls()
   m_unsetPrimaryPassword.setWindow(GetDlgItem(hwnd, IDC_UNSET_PRIMARY_PASSWORD_BUTTON));
   m_unsetReadOnlyPassword.setWindow(GetDlgItem(hwnd, IDC_UNSET_READONLY_PASSWORD_BUTTON));
   m_showTrayIcon.setWindow(GetDlgItem(hwnd, IDC_SHOW_TVNCONTROL_ICON_CHECKBOX));
+  m_connectToRdp.setWindow(GetDlgItem(hwnd, IDC_CONNECT_RDP_SESSION));
 
   m_rfbPortSpin.setWindow(GetDlgItem(hwnd, IDC_RFB_PORT_SPIN));
   m_httpPortSpin.setWindow(GetDlgItem(hwnd, IDC_HTTP_PORT_SPIN));
@@ -430,6 +436,18 @@ void ServerConfigDialog::onShowTrayIconCheckBoxClick()
     ((ConfigDialog *)m_parentDialog)->updateApplyButtonState();
   }
 }
+
+void ServerConfigDialog::onConnectToRdpCheckBoxClick()
+{
+  bool oldVal = m_config->getConnectToRdpFlag();
+  bool newVal = m_connectToRdp.isChecked();
+
+  if (oldVal != newVal) {
+    ((ConfigDialog *)m_parentDialog)->updateApplyButtonState();
+  }
+}
+
+
 
 void ServerConfigDialog::onPrimaryPasswordChange()
 {

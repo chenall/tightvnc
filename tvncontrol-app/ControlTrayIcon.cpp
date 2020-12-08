@@ -24,14 +24,12 @@
 
 #include "ControlTrayIcon.h"
 #include "OutgoingConnectionDialog.h"
-#include "TcpDispatcherConnectionDialog.h"
 #include "ControlApplication.h"
 
 #include "UpdateRemoteConfigCommand.h"
 #include "DisconnectAllCommand.h"
 #include "ShutdownCommand.h"
 #include "MakeRfbConnectionCommand.h"
-#include "MakeTcpDispatcherConnCommand.h"
 #include "ControlCommand.h"
 #include "UpdateLocalConfigCommand.h"
 
@@ -174,9 +172,6 @@ void ControlTrayIcon::onRightButtonUp()
   case ID_OUTGOING_CONN:
     onOutgoingConnectionMenuItemClick();
     break;
-  case IDM_ATTACH_TO_DISPATCHER:
-    onAttachToDispatcher();
-    break;
   case ID_ABOUT_TIGHTVNC_MENUITEM:
     onAboutMenuItemClick();
     break;
@@ -285,23 +280,6 @@ void ControlTrayIcon::onOutgoingConnectionMenuItemClick()
       m_serverControl,
       connDialog.getConnectString(),
       connDialog.isViewOnly());
-
-    ControlCommand safeCommand(&unsafeCommand, m_notificator);
-
-    safeCommand.execute();
-  }
-}
-
-void ControlTrayIcon::onAttachToDispatcher()
-{
-  TcpDispatcherConnectionDialog connDialog;
-
-  if (connDialog.showModal() == IDOK) {
-    MakeTcpDispatcherConnCommand unsafeCommand(m_serverControl,
-                                               connDialog.getConnectString(),
-                                               connDialog.getDispatcherName(),
-                                               connDialog.getKeyword(),
-                                               connDialog.getConnectionId());
 
     ControlCommand safeCommand(&unsafeCommand, m_notificator);
 

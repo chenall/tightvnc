@@ -105,6 +105,7 @@ const KS2VKEntry SERVER_AUXILIARY_TRANSLATE_TABLE[] = {
   { XK_KP_Subtract,  VK_SUBTRACT },
   { XK_KP_Decimal,   VK_DECIMAL },
   { XK_KP_Divide,    VK_DIVIDE },
+  { XK_Num_Lock,     VK_NUMLOCK },
 
   { XK_KP_0,         VK_NUMPAD0 },
   { XK_KP_1,         VK_NUMPAD1 },
@@ -143,7 +144,8 @@ const KS2VKEntry SERVER_AUXILIARY_TRANSLATE_TABLE[] = {
   { XK_F24, VK_F24 },
   { XK_Super_L, VK_LWIN },
   { XK_Super_R, VK_RWIN },
-  { XK_Menu, VK_APPS }
+  { XK_Menu, VK_APPS },
+  { XK_Hangul, VK_HANGUL }
 };
 
 const VK2KSEntry VIEWER_AUXILIARY_TRANSLATE_TABLE[] = {
@@ -184,6 +186,7 @@ const VK2KSEntry VIEWER_AUXILIARY_TRANSLATE_TABLE[] = {
   { VK_SUBTRACT,  XK_KP_Subtract },
   { VK_DECIMAL,   XK_KP_Decimal },
   { VK_DIVIDE,    XK_KP_Divide },
+  { VK_NUMLOCK,   XK_Num_Lock },
 
   { VK_NUMPAD0,   XK_KP_0 },
   { VK_NUMPAD1,   XK_KP_1 },
@@ -222,7 +225,8 @@ const VK2KSEntry VIEWER_AUXILIARY_TRANSLATE_TABLE[] = {
   { VK_F24,       XK_F24 },
   { VK_LWIN,      XK_Super_L },
   { VK_RWIN,      XK_Super_R },
-  { VK_APPS,      XK_Menu }
+  { VK_APPS,      XK_Menu },
+  { VK_HANGUL,    XK_Hangul }
 };
 
 struct codepair {

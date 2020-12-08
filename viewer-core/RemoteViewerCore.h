@@ -375,6 +375,12 @@ public:
   void allowCopyRect(bool allow);
 
   //
+  // If the server anounced UTF8CUTT capability allow sending ClientCutTextUtf8 messages.
+  // If the server anounced UTF8CUTT and UTF8CUTE capabilities sends EnableCutTextUtf8 message.
+  //
+  void allowUtf8Clipboard();
+
+  //
   // Set JPEG image quality level for Tight encoding (in theory, it can apply
   // to other encodings if they use JPEG, but currently, only Tight encoding
   // supports that). Valid levels are in the range 0..9. Also, -1 can be used
@@ -517,6 +523,8 @@ private:
   // adapter.
   //
   void receiveServerCutText();
+  // code 0xfc000200
+  void receiveServerCutTextUtf8();
 
   //
   // Receive SetColourMapEntries server message (code 1) and forget it:
@@ -524,12 +532,10 @@ private:
   //
   void receiveSetColorMapEntries();
 
-  void handleDispatcherProtocol(DispatchDataProvider *callback);
-
   bool isRfbProtocolString(const char protocol[12]) const;
   void connectToHost();
   void handshake();
-  int negotiateAboutSecurityType();
+  int negotiateSecurityType();
   void authenticate();
   void clientAndServerInit();
   void readSecurityTypeList(vector<UINT32> *secTypes);
@@ -661,6 +667,7 @@ private:
   bool m_isTightEnabled;
   bool m_isTight;
   StringStorage m_remoteDesktopName;
+  bool m_isUtf8ClipboardEnabled;
 
   bool m_forceFullUpdate;
   

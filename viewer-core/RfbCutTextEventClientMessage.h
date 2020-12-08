@@ -34,6 +34,7 @@ public:
   ~RfbCutTextEventClientMessage();
 
   void send(RfbOutputGate *output);
+  void sendUtf8(RfbOutputGate *output);
 
 private:
   StringStorage m_cutText;

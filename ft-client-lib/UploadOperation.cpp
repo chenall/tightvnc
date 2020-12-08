@@ -34,7 +34,7 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
                                  const TCHAR *pathToTargetRoot)
 : CopyOperation(logWriter),
   m_file(0), m_fis(0), m_gotoChild(false), m_gotoParent(false), m_firstUpload(true),
-  m_remoteFilesInfo(0), m_remoteFilesCount(0)
+  m_remoteFilesInfo(0), m_remoteFilesCount(0), m_bufferSize(20000)
 {
   m_pathToSourceRoot.setString(pathToSourceRoot);
   m_pathToTargetRoot.setString(pathToTargetRoot);
@@ -42,6 +42,7 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
   m_toCopy = new FileInfoList(fileToUpload);
 
   changeFileToUpload(m_toCopy);
+  m_lastRequestTime = DateTime::now();
 }
 
 UploadOperation::UploadOperation(LogWriter *logWriter,
@@ -50,7 +51,7 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
                                  const TCHAR *pathToTargetRoot)
 : CopyOperation(logWriter),
   m_file(0), m_fis(0), m_gotoChild(false), m_gotoParent(false), m_firstUpload(true),
-  m_remoteFilesInfo(0), m_remoteFilesCount(0)
+  m_remoteFilesInfo(0), m_remoteFilesCount(0), m_bufferSize(20000)
 {
   m_pathToSourceRoot.setString(pathToSourceRoot);
   m_pathToTargetRoot.setString(pathToTargetRoot);
@@ -58,6 +59,7 @@ UploadOperation::UploadOperation(LogWriter *logWriter,
   m_toCopy = new FileInfoList(filesToUpload, filesCount);
 
   changeFileToUpload(m_toCopy);
+  m_lastRequestTime = DateTime::now();
 }
 
 UploadOperation::~UploadOperation()
@@ -393,11 +395,24 @@ void UploadOperation::sendFileDataChunk()
 {
   _ASSERT(m_fis != NULL);
 
-  const size_t bufferSize = 1024 * 8;
-  vector<char> buffer(bufferSize);
+  if ((DateTime::now() - m_lastRequestTime).getTime() > 300) {
+    m_bufferSize /= 2;
+  }
+  else {
+    m_bufferSize *= 2;
+  }
+  if (m_bufferSize < 20000) {
+    m_bufferSize = 20000;
+  }
+  if (m_bufferSize > 400000) {
+    m_bufferSize = 400000;
+  }
+  m_lastRequestTime = DateTime::now();
+
+  vector<char> buffer(m_bufferSize);
   UINT32 read = 0;
   try {
-    size_t portion = m_fis->read(&buffer.front(), bufferSize);
+    size_t portion = m_fis->read(&buffer.front(), m_bufferSize);
     _ASSERT((UINT32)portion == portion);
     read = (UINT32)portion;
   } catch (EOFException) {

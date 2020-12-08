@@ -22,43 +22,14 @@
 //-------------------------------------------------------------------------
 //
 
-#include "Win8CursorShape.h"
+#ifndef __MEMUSAGE_H__
+#define __MEMUSAGE_H__
 
-Win8CursorShape::Win8CursorShape()
-: m_isVisible(false),
-  m_threadOwner(-1)
+class MemUsage
 {
-}
+public:
+  static size_t getCurrentMemUsage();
+};
 
-Win8CursorShape::~Win8CursorShape()
-{
-}
+#endif __MEMUSAGE_H__
 
-const CursorShape *Win8CursorShape::getCursorShape() const
-{
-  if (getIsVisible()) {
-    return &m_cursorShape;
-  } else {
-    return &m_emptyDimensionCursorShape;
-  }
-}
-
-CursorShape *Win8CursorShape::getCursorShapeForWriting()
-{
-  return &m_cursorShape;
-}
-
-void Win8CursorShape::setVisibility(bool value, int threadOwner)
-{
-  // Set to false is allowed only for a thread owner. Else, a not owner thread can
-  // set the false value after owner thread and then cursor shape will disappear.
-  if (value || m_threadOwner == threadOwner) {
-    m_isVisible = value;
-    m_threadOwner = threadOwner;
-  }
-}
-
-bool Win8CursorShape::getIsVisible() const
-{
-  return m_isVisible;
-}

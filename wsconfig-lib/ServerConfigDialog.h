@@ -77,6 +77,7 @@ private:
   void onUnsetPrimaryPasswordClick();
   void onUnsetReadOnlyPasswordClick();
   void onShowTrayIconCheckBoxClick();
+  void onConnectToRdpCheckBoxClick();
   void onPollingIntervalSpinChangePos(LPNMUPDOWN message);
   void onRfbPortUpdate();
   void onHttpPortUpdate();
@@ -111,6 +112,7 @@ protected:
   CheckBox m_acceptRfbConnections;
   CheckBox m_acceptHttpConnections;
   CheckBox m_showTrayIcon;
+  CheckBox m_connectToRdp;
   Control m_primaryPassword;
   Control m_readOnlyPassword;
   Control m_unsetPrimaryPassword;

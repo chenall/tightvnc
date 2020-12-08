@@ -26,6 +26,7 @@
 #include "thread/ZombieKiller.h"
 #include "QueryConnectionApplication.h"
 #include "server-config-lib/Configurator.h"
+#include "util/MemUsage.h"
 
 RfbClientManager::RfbClientManager(const TCHAR *serverName,
                                    NewConnectionEvents *newConnectionEvents,
@@ -310,11 +311,16 @@ void RfbClientManager::validateClientList()
 bool RfbClientManager::checkForBan(const StringStorage *ip)
 {
   AutoLock al(&m_banListMutex);
-  refreshBan();
 
   BanListIter it = m_banList.find(*ip);
   if (it != m_banList.end()) {
-    if ((*it).second.count >= MAX_BAN_COUNT) {
+    unsigned int count = (*it).second.count;
+    DateTime lastTime = (*it).second.banLastTime;
+    DateTime now = DateTime::now();
+    if (count > 13) count = 13; 
+    // about 1 hour max login rate after 14 unsuccessful logins
+    // wait about 1 minute after 8 unsuccessful logins
+    if ((now-lastTime).getTime() < 500 * (1 << count)) {  
       return true;
     } else {
       return false;
@@ -327,7 +333,7 @@ bool RfbClientManager::checkForBan(const StringStorage *ip)
 void RfbClientManager::updateIpInBan(const StringStorage *ip, bool success)
 {
   AutoLock al(&m_banListMutex);
-  refreshBan();
+
   BanListIter it = m_banList.find(*ip);
   if (success) {
     if (it != m_banList.end()) {
@@ -338,30 +344,31 @@ void RfbClientManager::updateIpInBan(const StringStorage *ip, bool success)
     if (it != m_banList.end()) {
       // Increase ban count
       (*it).second.count += 1;
+      (*it).second.banLastTime = DateTime::now();
     } else {
       // Add new element to ban list with ban count == 0
       BanProp banProp;
-      banProp.banFirstTime = DateTime::now();
+      banProp.banLastTime = DateTime::now();
       banProp.count = 0;
       m_banList[*ip] = banProp;
     }
   }
 }
 
-void RfbClientManager::refreshBan()
+StringStorage RfbClientManager::getBanListString()
 {
-  AutoLock al(&m_banListMutex);
-
-  // Clear the ban list from deprecated bans.
-  BanListIter it = m_banList.begin();
-  while (it != m_banList.end()) {
-    DateTime banFirstTime = (*it).second.banFirstTime;
-    if ((DateTime::now() - banFirstTime).getTime() >= BAN_TIME) {
-      it = m_banList.erase(it);
-    } else {
-      it++;
-    }
+  StringStorage str;
+  for (BanListIter it = m_banList.begin(); it != m_banList.end(); it++) {
+    StringStorage ip = (*it).first;
+    StringStorage s;
+    unsigned int count = (*it).second.count;
+    DateTime lastTime = (*it).second.banLastTime;
+    StringStorage time;
+    lastTime.toString(&time);
+    s.format(_T("IP: %s, count: %d, last time: %s\n"), ip.getString(), count, time.getString());
+    str.appendString(s.getString());
   }
+  return str;
 }
 
 void RfbClientManager::addNewConnection(SocketIPv4 *socket,
@@ -385,6 +392,7 @@ void RfbClientManager::addNewConnection(SocketIPv4 *socket,
   _ASSERT(constViewPort != 0);
 
   m_log->error(_T("Client #%d connected"), m_nextClientId);
+  m_log->debug(_T("new client, process memory usage: %d "), MemUsage::getCurrentMemUsage());
 
   m_nonAuthClientList.push_back(new RfbClient(m_newConnectionEvents,
                                               socket, this, this, viewOnly,

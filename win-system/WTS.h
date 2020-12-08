@@ -44,11 +44,27 @@ typedef BOOL (WINAPI *pWTSQuerySessionInformationA)(
   LPSTR **ppBuffer,
   DWORD *pBytesReturned);
 typedef VOID (WINAPI *pWTSFreeMemory)(void *buffer);
+typedef BOOL(WINAPI *pWTSEnumerateSessionsA)(
+  IN HANDLE          hServer,
+  IN DWORD           Reserved,
+  IN DWORD           Version,
+  PWTS_SESSION_INFOA *ppSessionInfo,
+  DWORD              *pCount
+);
+typedef BOOL(WINAPI *pWTSEnumerateSessionsW)(
+  IN HANDLE          hServer,
+  IN DWORD           Reserved,
+  IN DWORD           Version,
+  PWTS_SESSION_INFOW *ppSessionInfo,
+  DWORD              *pCount
+  );
 
 #ifdef UNICODE
-#define pWTSQuerySessionInformation pWTSQuerySessionInformationW
+#define   pWTSQuerySessionInformation pWTSQuerySessionInformationW
+#define   pWTSEnumerateSessions pWTSEnumerateSessionsW
 #else
 #define pWTSQuerySessionInformation pWTSQuerySessionInformationA
+#define pWTSEnumerateSessions pWTSEnumerateSessionsA
 #endif
 
 
@@ -66,6 +82,13 @@ public:
    * WinAPI WTSGetActiveConsoleSessionId function not avaliable.
    */
   static DWORD getActiveConsoleSessionId(LogWriter *log);
+
+  /**
+  * Gets RDP console session id.
+  * @return RDP console session id if WTS is avaliable and RDP console exists or 0 if
+  * WinAPI WTSEnumerateSessions function not avaliable.
+  */
+  static DWORD getRdpSessionId(LogWriter *log);
 
   /**
    * Queries user token in active console session.
@@ -113,6 +136,7 @@ private:
   static pWTSQueryUserToken m_WTSQueryUserToken;
   static pWTSQuerySessionInformation m_WTSQuerySessionInformation;
   static pWTSFreeMemory m_WTSFreeMemory;
+  static pWTSEnumerateSessions m_WTSEnumerateSessions;
 
   /**
    * Determinates if WTS library was initialized.

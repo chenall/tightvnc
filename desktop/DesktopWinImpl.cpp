@@ -30,7 +30,6 @@
 #include "desktop-ipc/UserInputClient.h"
 #include "SasUserInput.h"
 #include "WindowsUserInput.h"
-#include "DesktopConfigLocal.h"
 #include "win-system/Environment.h"
 #include "win-system/WindowsDisplays.h"
 

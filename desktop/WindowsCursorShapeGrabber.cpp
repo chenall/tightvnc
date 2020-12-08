@@ -164,15 +164,15 @@ bool WindowsCursorShapeGrabber::grabPixels(const PixelFormat *pixelFormat)
   memcpy(pixels->getBuffer(), buffer, pixels->getBufferSize());
 
   if (!isColorShape) {
-    WinCursorShapeUtils::winMonoShapeToRfb(pixels, mask, mask + widthBytes * height);
+    WinCursorShapeUtils::winMonoShapeToRfb(pixels, mask, mask + widthBytes * height, widthBytes);
   } else {
     if (pixels->getBitsPerPixel() == 32) {
-      if (WinCursorShapeUtils::winColorShapeToRfb<UINT32>(pixels, mask)) {
+      if (WinCursorShapeUtils::winColorShapeToRfb<UINT32>(pixels, mask, widthBytes)) {
         // If the alpha channel is presented.
-        WinCursorShapeUtils::fixAlphaChannel(pixels, mask, false);
+        WinCursorShapeUtils::fixAlphaChannel(pixels, mask, false, widthBytes);
       }
     } else if (pixels->getBitsPerPixel() == 16) {
-      WinCursorShapeUtils::winColorShapeToRfb<UINT16>(pixels, mask);
+      WinCursorShapeUtils::winColorShapeToRfb<UINT16>(pixels, mask, widthBytes);
     }
   }
 

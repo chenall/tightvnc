@@ -107,7 +107,6 @@ void FileInfoListView::addItem(int index, FileInfo *fileInfo)
 
   ListView::setSubItemText(index, 1, sizeString.getString());
   ListView::setSubItemText(index, 2, modTimeString.getString());
-  ListView::sort();
 }
 
 void FileInfoListView::addRange(FileInfo **filesInfo, size_t count)

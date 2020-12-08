@@ -38,6 +38,9 @@ WinDxgiOutputDuplication::WinDxgiOutputDuplication(WinDxgiOutput1 *dxgiOutput, W
     if (hr == DXGI_ERROR_NOT_CURRENTLY_AVAILABLE) {
       throw WinDxRecoverableException(
         _T("Can't DuplicateOutput() because resource doesn't available at the time"), hr);
+    } else if (hr == E_ACCESSDENIED) {
+        throw WinDxRecoverableException(
+          _T("Can't DuplicateOutput() because of access denied error"), hr);
     } else {
       throw WinDxCriticalException(_T("Can't DuplicateOutput()"), hr);
     }
@@ -136,57 +139,64 @@ size_t WinDxgiOutputDuplication::getFrameDirtyRects(std::vector<RECT> *dirtyRect
 void WinDxgiOutputDuplication::getFrameCursorShape(CursorShape *cursorShape, UINT pointerShapeBufferSize)
 {
   // This function can calculate required buffer size by self but the size is already known.
-  if (pointerShapeBufferSize != 0) {
-    HRESULT hr;
-    UINT reqSize = 0;
-    std::vector<char> buffer(pointerShapeBufferSize);
-    DXGI_OUTDUPL_POINTER_SHAPE_INFO shapeInfo;
-    hr = m_outDupl->GetFramePointerShape((UINT)buffer.size(), &buffer.front(), &reqSize, &shapeInfo);
-    if (FAILED(hr)) {
-      throw WinDxException(_T("Can't get frame cursor shape with GetFramePointerShape() calling"), hr);
-    }
-
-    CursorShape newCursorShape;
-    PixelFormat pf = StandardPixelFormatFactory::create32bppPixelFormat();
-    newCursorShape.setHotSpot(shapeInfo.HotSpot.x, shapeInfo.HotSpot.y);
-
-    // FIXME: Update cursorShape
-    if (shapeInfo.Type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME) {
-      // FIXME: Check out of bound.
-      Dimension dim(shapeInfo.Width, shapeInfo.Height / 2);
-      newCursorShape.setProperties(&dim, &pf);
-
-      WinCursorShapeUtils::winMonoShapeToRfb(newCursorShape.getPixels(),
-        &buffer.front(), &buffer[shapeInfo.Pitch * dim.height]);
-
-      newCursorShape.assignMaskFromWindows(&buffer.front());
-    } else if (shapeInfo.Type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MASKED_COLOR ||
-               shapeInfo.Type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_COLOR) {
-      Dimension dim(shapeInfo.Width, shapeInfo.Height);
-      newCursorShape.setProperties(&dim, &pf);
-      // Check buffer size.
-      size_t shapeSize = newCursorShape.getPixelsSize();
-      if (shapeSize > buffer.size()) {
-        throw Exception(_T("Invalid buffer size for DXGI_OUTDUPL_POINTER_SHAPE_TYPE_COLOR cursor."));
-      }
-      memcpy(newCursorShape.getPixels()->getBuffer(), &buffer.front(), shapeSize);
-
-      int widthInBytes = ((dim.width + 15) / 16) * 2;
-      std::vector<char> mask(widthInBytes * dim.height);
-      if (!mask.empty()) {
-        memset(&mask.front(), 0, mask.size());
-
-        WinCursorShapeUtils::winColorShapeToRfb<UINT32>(newCursorShape.getPixels(), &mask.front());
-        bool inversedAlpha = shapeInfo.Type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MASKED_COLOR;
-        WinCursorShapeUtils::fixAlphaChannel(newCursorShape.getPixels(), &mask.front(), inversedAlpha);
-        newCursorShape.assignMaskFromWindows(&mask.front());
-      }
-    } else {
-      throw Exception(_T("Unknown cursor shape type return with GetFramePointerShape() calling"));
-    }
-
-    cursorShape->clone(&newCursorShape);
-  } else {
-    cursorShape->resetToEmpty();
+  if (pointerShapeBufferSize == 0) {
+	  cursorShape->resetToEmpty();
+	  return;
   }
+  HRESULT hr;
+  UINT reqSize = 0;
+  std::vector<char> buffer(pointerShapeBufferSize);
+  DXGI_OUTDUPL_POINTER_SHAPE_INFO shapeInfo;
+  hr = m_outDupl->GetFramePointerShape((UINT)buffer.size(), &buffer.front(), &reqSize, &shapeInfo);
+  if (FAILED(hr)) {
+    throw WinDxException(_T("Can't get frame cursor shape with GetFramePointerShape() calling"), hr);
+  }
+
+  buffer.resize(reqSize);
+
+  CursorShape newCursorShape;
+  PixelFormat pf = StandardPixelFormatFactory::create32bppPixelFormat();
+  newCursorShape.setHotSpot(shapeInfo.HotSpot.x, shapeInfo.HotSpot.y);
+
+  UINT pitch;
+  Dimension dim;
+  if (shapeInfo.Type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME) {
+	  pitch = ((shapeInfo.Width + 15) / 16) * 2;
+	  dim.setDim(shapeInfo.Width, shapeInfo.Height / 2);
+  } else {
+	  pitch = shapeInfo.Width * 4;
+	  dim.setDim(shapeInfo.Width, shapeInfo.Height);
+  }
+  newCursorShape.setProperties(&dim, &pf);
+
+  if (shapeInfo.Pitch > pitch) {
+	  WinCursorShapeUtils::trimBuffer(&buffer, shapeInfo, pitch);
+  } 
+  if (shapeInfo.Pitch < pitch) {
+	  throw Exception(_T("Invalid cursor data pitch."));
+  }
+
+  // monochrome cursor
+  if (shapeInfo.Type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME) {
+    WinCursorShapeUtils::winMonoShapeToRfb(newCursorShape.getPixels(),
+        &buffer.front(), &buffer[pitch * dim.height], pitch);
+    newCursorShape.assignMaskFromWindows(&buffer.front());
+	  cursorShape->clone(&newCursorShape);
+	  return;
+  } 
+
+  // 32bpp cursor
+  // Check buffer size.
+  size_t shapeSize = newCursorShape.getPixelsSize();
+  if (shapeSize > buffer.size()) {
+    throw Exception(_T("Invalid buffer size for color cursor."));
+  }
+  memcpy(newCursorShape.getPixels()->getBuffer(), &buffer.front(), shapeSize);
+  int maskPitch = ((dim.width + 15) / 16 ) * 2;
+  std::vector<char> mask(maskPitch * dim.height, 0xff);
+  bool maskedColor = shapeInfo.Type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MASKED_COLOR;
+  WinCursorShapeUtils::fixAlphaChannel(newCursorShape.getPixels(), &mask.front(), maskedColor, maskPitch);
+  newCursorShape.assignMaskFromWindows(&mask.front()); // assumes width is aligned to 2 bytes
+  cursorShape->clone(&newCursorShape);
 }
+

@@ -32,7 +32,8 @@ DownloadOperation::DownloadOperation(LogWriter *logWriter,
 : CopyOperation(logWriter),
   m_file(0),
   m_fos(0),
-  m_fileOffset(0)
+  m_fileOffset(0),
+  m_bufferSize(20000)
 {
   m_pathToSourceRoot.setString(pathToSourceRoot);
   m_pathToTargetRoot.setString(pathToTargetRoot);
@@ -131,11 +132,11 @@ void DownloadOperation::onDownloadReply(DataInputStream *input)
   // Send first request for file data
   //
 
-  UINT32 dataSize = 1024 * 8;
   bool compression = m_replyBuffer->isCompressionSupported();
 
-  m_sender->sendDownloadDataRequest(dataSize,
+  m_sender->sendDownloadDataRequest((UINT32)m_bufferSize,
                                     compression);
+  m_lastRequestTime = DateTime::now();
 }
 
 void DownloadOperation::onDownloadDataReply(DataInputStream *input)
@@ -144,8 +145,6 @@ void DownloadOperation::onDownloadDataReply(DataInputStream *input)
     gotoNext();
     return ;
   }
-
-  UINT32 bufferSize = 1024 * 8;
 
   try {
     DataOutputStream dos(m_fos);
@@ -174,8 +173,20 @@ void DownloadOperation::onDownloadDataReply(DataInputStream *input)
   //
 
   bool compression = m_replyBuffer->isCompressionSupported();
-
-  m_sender->sendDownloadDataRequest(bufferSize, compression);
+  
+  if ((DateTime::now() - m_lastRequestTime).getTime() > 300) {
+    m_bufferSize /= 2; 
+  } else {
+    m_bufferSize *= 2;
+  }
+  if (m_bufferSize < 20000) {
+    m_bufferSize = 20000;
+  }
+  if (m_bufferSize > 400000) {
+    m_bufferSize = 400000;
+  }
+  m_sender->sendDownloadDataRequest((UINT32)m_bufferSize, compression);
+  m_lastRequestTime = DateTime::now();
 }
 
 void DownloadOperation::onDownloadEndReply(DataInputStream *input)

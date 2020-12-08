@@ -120,6 +120,11 @@ protected:
   // Helper member to know how many folders to download left
   // to get their file size
   UINT32 m_foldersToCalcSizeLeft;
+
+  // request data size changes dynamicaly depends on request rate
+  size_t m_bufferSize;
+  DateTime m_lastRequestTime;
+
 };
 
 #endif

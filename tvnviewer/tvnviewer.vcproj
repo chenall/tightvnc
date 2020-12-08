@@ -628,7 +628,6 @@
 	<References>
 		<ProjectReference
 			ReferencedProjectIdentifier="{9A7033FA-6263-425D-83BF-A1D9F48BA997}"
-			RelativePathToProject=".\tcp-dispatcher\tcp-dispatcher.vcproj"
 		/>
 		<ProjectReference
 			ReferencedProjectIdentifier="{4793826B-B077-4D75-A36C-66C9724C08F4}"

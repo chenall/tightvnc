@@ -531,7 +531,7 @@ void *FrameBuffer::getBufferPtr(int x, int y) const
 
 int FrameBuffer::getBufferSize() const
 { 
-  return (m_dimension.area() * m_pixelFormat.bitsPerPixel) / 8;
+  return (int)((UINT64)m_dimension.area() * m_pixelFormat.bitsPerPixel / 8);
 }
 
 bool FrameBuffer::resizeBuffer()

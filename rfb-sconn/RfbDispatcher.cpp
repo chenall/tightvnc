@@ -43,7 +43,7 @@ RfbDispatcher::RfbDispatcher(RfbInputGate *gate,
 RfbDispatcher::~RfbDispatcher()
 {
   terminate();
-  resume();
+//  resume();
   wait();
 }
 

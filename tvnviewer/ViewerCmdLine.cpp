@@ -37,7 +37,6 @@ const TCHAR ViewerCmdLine::LISTEN[] = _T("listen");
 const TCHAR ViewerCmdLine::HOST[] = _T("host");
 const TCHAR ViewerCmdLine::PORT[] = _T("port");
 const TCHAR ViewerCmdLine::PASSWORD[] = _T("password");
-const TCHAR ViewerCmdLine::DISPATCH_ID[] = _T("dispatchid");
 const TCHAR ViewerCmdLine::SHOW_CONTROLS[] = _T("showcontrols");
 const TCHAR ViewerCmdLine::VIEW_ONLY[] = _T("viewonly");
 const TCHAR ViewerCmdLine::USE_CLIPBOARD[] = _T("useclipboard");
@@ -112,7 +111,6 @@ void ViewerCmdLine::parse()
     HOST,
     PORT,
     PASSWORD,
-    DISPATCH_ID,
     SHOW_CONTROLS,
     VIEW_ONLY,
     USE_CLIPBOARD,
@@ -159,7 +157,6 @@ void ViewerCmdLine::parse()
       throw CommandLineFormatException(StringTable::getString(IDS_ERROR_COMMAND_LINE));
   }
   parsePassword();
-  parseDispatchId();
   parseEncoding();
   parseMouseShape();
   parseMouseCursor();
@@ -248,16 +245,6 @@ void ViewerCmdLine::parsePassword()
 {
   if (isPresent(PASSWORD)) {
     m_conData->setPlainPassword(&m_options[PASSWORD]);
-  }
-}
-
-void ViewerCmdLine::parseDispatchId()
-{
-  if (isPresent(DISPATCH_ID)) {
-    const TCHAR *arg = m_options[DISPATCH_ID].getString();
-    TCHAR *ptr = 0;
-    UINT32 id = (UINT32)_tcstoul(arg, &ptr, 10);
-    m_conData->setDispatchId(id);
   }
 }
 

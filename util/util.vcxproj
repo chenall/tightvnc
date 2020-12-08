@@ -132,6 +132,7 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseNoUnicode|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseNoUnicode|x64'">$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -343,6 +344,7 @@
     <ClCompile Include="Keymap.cpp" />
     <ClCompile Include="MacroCommand.cpp" />
     <ClCompile Include="md5.cpp" />
+    <ClCompile Include="MemUsage.cpp" />
     <ClCompile Include="ResourceLoader.cpp" />
     <ClCompile Include="StringParser.cpp" />
     <ClCompile Include="StringStorage.cpp" />
@@ -376,6 +378,7 @@
     <ClInclude Include="ListenerContainer.h" />
     <ClInclude Include="MacroCommand.h" />
     <ClInclude Include="md5.h" />
+    <ClInclude Include="MemUsage.h" />
     <ClInclude Include="ResourceLoader.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="StringParser.h" />

@@ -260,6 +260,7 @@
     <ClCompile Include="CapContainer.cpp" />
     <ClCompile Include="ClientInputHandler.cpp" />
     <ClCompile Include="ClipboardExchange.cpp" />
+    <ClCompile Include="EchoExtensionRequestHandler.cpp" />
     <ClCompile Include="EncodeOptions.cpp" />
     <ClCompile Include="Encoder.cpp" />
     <ClCompile Include="EncoderStore.cpp" />
@@ -283,6 +284,7 @@
     <ClInclude Include="ClientInputHandler.h" />
     <ClInclude Include="ClientTerminationListener.h" />
     <ClInclude Include="ClipboardExchange.h" />
+    <ClInclude Include="EchoExtensionRequestHandler.h" />
     <ClInclude Include="EncodeOptions.h" />
     <ClInclude Include="Encoder.h" />
     <ClInclude Include="EncoderStore.h" />

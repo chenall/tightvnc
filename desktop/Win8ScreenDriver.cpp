@@ -36,52 +36,63 @@ Win8ScreenDriver::Win8ScreenDriver(UpdateKeeper *updateKeeper,
   m_updateListener(updateListener),
   m_detectionEnabled(false)
 {
-  // FIXME: This class is not provide thread safety for common usage case but for the UpdatehandlerImpl
-  // usage case it provides. To fix this issue is needed to think to introduce a mutex for m_drvImpl.
+  AutoLock al(&m_drvImplMutex);
   m_drvImpl = new Win8ScreenDriverImpl(m_log, m_updateKeeper, m_fbLocalMutex, m_updateListener);
 }
 
 Win8ScreenDriver::~Win8ScreenDriver()
 {
   terminateDetection();
-
-  delete m_drvImpl;
+  AutoLock al(&m_drvImplMutex);
+  if (m_drvImpl != 0) {
+    delete m_drvImpl;
+    m_drvImpl = 0;
+  }
 }
 
 void Win8ScreenDriver::executeDetection()
 {
+  AutoLock al(&m_drvImplMutex);
   m_detectionEnabled = true;
   m_drvImpl->executeDetection();
 }
 
 void Win8ScreenDriver::terminateDetection()
 {
+  AutoLock al(&m_drvImplMutex);
   m_detectionEnabled = false;
-  m_drvImpl->terminateDetection();
+  if (m_drvImpl != 0) {
+    m_drvImpl->terminateDetection();
+  }
 }
 
 Dimension Win8ScreenDriver::getScreenDimension()
 {
+  AutoLock al(&m_drvImplMutex);
   return m_drvImpl->getScreenBuffer()->getDimension();
 }
 
 FrameBuffer *Win8ScreenDriver::getScreenBuffer()
 {
+  AutoLock al(&m_drvImplMutex);
   return m_drvImpl->getScreenBuffer();
 }
 
 bool Win8ScreenDriver::grabFb(const Rect *rect)
 {
+  AutoLock al(&m_drvImplMutex);
   return m_drvImpl->grabFb(rect);
 }
 
 bool Win8ScreenDriver::getScreenPropertiesChanged()
 {
+  AutoLock al(&m_drvImplMutex);
   return !m_drvImpl->isValid();
 }
 
 bool Win8ScreenDriver::getScreenSizeChanged()
 {
+  AutoLock al(&m_drvImplMutex);
   return !m_drvImpl->isValid();
 }
 
@@ -89,6 +100,7 @@ bool Win8ScreenDriver::applyNewScreenProperties()
 {
   try {
     m_log->debug(_T("Applying new screen properties, deleting old Win8ScreenDriverImpl"));
+    AutoLock al(&m_drvImplMutex);
     if (m_drvImpl != 0) {
       delete m_drvImpl;
       m_drvImpl = 0;
@@ -106,6 +118,7 @@ bool Win8ScreenDriver::applyNewScreenProperties()
 
 bool Win8ScreenDriver::grabCursorShape(const PixelFormat *pf)
 {
+  AutoLock al(&m_drvImplMutex);
   m_drvImpl->updateCursorShape(&m_cursorShape);
   return !m_drvImpl->isValid();
 }
@@ -117,11 +130,12 @@ const CursorShape *Win8ScreenDriver::getCursorShape()
 
 Point Win8ScreenDriver::getCursorPosition()
 {
+  AutoLock al(&m_drvImplMutex);
   return m_drvImpl->getCursorPosition();
 }
 
 void Win8ScreenDriver::getCopiedRegion(Rect *copyRect, Point *source)
 {
-  copyRect->clear();
-  source->clear();
+  AutoLock al(m_fbLocalMutex);
+  m_copyRectDetector.detectWindowMovements(copyRect, source);
 }

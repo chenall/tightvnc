@@ -41,7 +41,6 @@ const TCHAR ControlCommandLine::PASSWORD_FILE[] = _T("-passfile");
 const TCHAR ControlCommandLine::CONFIG_RELOAD[]  = _T("-reload");
 const TCHAR ControlCommandLine::DISCONNECT_ALL[] = _T("-disconnectall");
 const TCHAR ControlCommandLine::CONNECT[] = _T("-connect");
-const TCHAR ControlCommandLine::DISPATCH[] = _T("-dispatch");
 const TCHAR ControlCommandLine::SHUTDOWN[] = _T("-shutdown");
 const TCHAR ControlCommandLine::SHARE_PRIMARY[] = _T("-shareprimary");
 const TCHAR ControlCommandLine::SHARE_RECT[] = _T("-sharerect");
@@ -74,7 +73,6 @@ void ControlCommandLine::parse(const CommandLineArgs *cmdArgs)
     { CONFIG_RELOAD, NO_ARG },
     { DISCONNECT_ALL, NO_ARG },
     { CONNECT, NEEDS_ARG },
-    { DISPATCH, NEEDS_ARG },
     { SHUTDOWN, NO_ARG },
     { SET_PRIMARY_VNC_PASSWORD, NEEDS_ARG },
     { SET_CONTROL_PASSWORD, NEEDS_ARG },
@@ -140,10 +138,6 @@ void ControlCommandLine::parse(const CommandLineArgs *cmdArgs)
     optionSpecified(CONNECT, &m_connectHostName);
   }
 
-  if (hasDispatchFlag()) {
-    optionSpecified(DISPATCH, &m_dispatcherSpec);
-  }
-
   if ((hasSetVncPasswordFlag() || hasSetControlPasswordFlag()) && m_foundKeys.size() > 1) {
     throw CommandLineFormatException();
   } else {
@@ -194,16 +188,6 @@ bool ControlCommandLine::hasConnectFlag()
 void ControlCommandLine::getConnectHostName(StringStorage *hostName) const
 {
   *hostName = m_connectHostName;
-}
-
-bool ControlCommandLine::hasDispatchFlag()
-{
-  return optionSpecified(DISPATCH);
-}
-
-void ControlCommandLine::getDispatcherSpec(StringStorage *dispatcherSpec) const
-{
-  *dispatcherSpec = m_dispatcherSpec;
 }
 
 bool ControlCommandLine::hasShutdownFlag()
@@ -319,7 +303,7 @@ const TCHAR *ControlCommandLine::getControlPassword() const
 bool ControlCommandLine::isCommandSpecified()
 {
   return hasKillAllFlag() || hasReloadFlag() || hasSetControlPasswordFlag() ||
-         hasSetVncPasswordFlag() || hasConnectFlag() || hasDispatchFlag() || hasShutdownFlag() ||
+         hasSetVncPasswordFlag() || hasConnectFlag() || hasShutdownFlag() ||
          hasSharePrimaryFlag() || hasShareDisplay() || hasShareWindow() ||
          hasShareRect() || hasShareFull() || hasShareApp();
 }

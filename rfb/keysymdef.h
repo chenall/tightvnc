@@ -93,6 +93,7 @@ SOFTWARE.
 #define XK_Kana_Shift		0xFF2E  /* Kana Shift */
 #define XK_Eisu_Shift		0xFF2F  /* Alphanumeric Shift */
 #define XK_Eisu_toggle		0xFF30  /* Alphanumeric toggle */
+#define XK_Hangul		0xFF31  /* to Hangul */
 #define XK_Kanji_Bangou		0xFF37  /* Codeinput */
 #define XK_Zen_Koho		0xFF3D	/* Multiple/All Candidate(s) */
 #define XK_Mae_Koho		0xFF3E	/* Previous Candidate */

@@ -35,6 +35,8 @@
 
 #include "tvnserver/resource.h"
 
+#include "win-system/RegistryKey.h"
+
 TvnServerApplication::TvnServerApplication(HINSTANCE hInstance,
                                            const TCHAR *windowClassName,
                                            const TCHAR *commandLine,
@@ -78,6 +80,21 @@ int TvnServerApplication::run()
     MessageBox(0,
                StringTable::getString(IDS_SERVER_ALREADY_RUNNING),
                StringTable::getString(IDS_MBC_TVNSERVER), MB_OK | MB_ICONEXCLAMATION);
+    return 1;
+  }
+
+  // check the HKLM\SOFTWARE\TightVNC\Server\ has ServiceOnly subsection and exit if found
+  // to create the key and set acces rights run the PS script:
+  // New-Item -Path HKLM:\SOFTWARE\TightVNC\Server -Name ServiceOnly
+  // $ACL = Get-Acl HKLM:\SOFTWARE\TightVNC\Server\ServiceOnly
+  // $AccessRule = new-object System.Security.AccessControl.RegistryAccessRule("Users", "ReadKey", "None", "None", "Allow")
+  // $ACL.SetAccessRule($AccessRule)
+  // $ACL | Set-Acl HKLM:\SOFTWARE\TightVNC\Server\ServiceOnly
+  RegistryKey key(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\TightVNC\\Server\\ServiceOnly"), false);
+  if (key.isOpened()) {
+    MessageBox(0,
+      _T("Couldn't run the server in Application mode"),
+      _T("Server error"), MB_OK | MB_ICONEXCLAMATION);
     return 1;
   }
 

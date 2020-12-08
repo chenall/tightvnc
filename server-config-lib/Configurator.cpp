@@ -635,6 +635,9 @@ bool Configurator::saveServerConfig(SettingsManager *sm)
   if (!sm->setBoolean(_T("RunControlInterface"), m_serverConfig.getShowTrayIconFlag())) {
     saveResult = false;
   }
+  if (!sm->setBoolean(_T("ConnectToRdp"), m_serverConfig.getConnectToRdpFlag())) {
+    saveResult = false;
+  }
   if (!sm->setUINT(_T("IdleTimeout"), (UINT)m_serverConfig.getIdleTimeout())) {
     saveResult = false;
   }
@@ -830,6 +833,15 @@ bool Configurator::loadServerConfig(SettingsManager *sm, ServerConfig *config)
     m_isConfigLoadedPartly = true;
     m_serverConfig.setShowTrayIconFlag(boolVal);
   }
+  
+    if (!sm->getBoolean(_T("ConnectToRdp"), &boolVal)) {
+      loadResult = false;
+    }
+    else {
+      m_isConfigLoadedPartly = true;
+      m_serverConfig.setConnectToRdpFlag(boolVal);
+    }
+
   updateLogDirPath();
   return loadResult;
 }

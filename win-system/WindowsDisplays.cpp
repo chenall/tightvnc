@@ -57,8 +57,9 @@ void WindowsDisplays::update()
     // Enumerate only desktop's displays. Skip mirror driver desktops.
     HDC hdc = GetDC(0);
     EnumDisplayMonitors(hdc, 0, monitorEnumProc, (LPARAM)this);
-
+    
     m_latestUpdateTime = DateTime::now();
+    ReleaseDC(0, hdc);
   }
 }
 

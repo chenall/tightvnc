@@ -31,7 +31,7 @@
 #include "rfb/EncodingDefs.h"
 #include "rfb/VendorDefs.h"
 #include "util/AnsiStringStorage.h"
-#include "tcp-dispatcher/DispatcherProtocol.h"
+#include "util/Utf8StringStorage.h"
 
 #include "AuthHandler.h"
 #include "RichCursorDecoder.h"
@@ -66,7 +66,9 @@ RemoteViewerCore::RemoteViewerCore(Logger *logger)
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
   m_decoderStore(&m_logWriter),
   m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter),
-  m_isTightEnabled(true)
+  m_dispatchDataProvider(0),
+  m_isTightEnabled(true),
+  m_isUtf8ClipboardEnabled(false)
 {
   init();
 }
@@ -79,7 +81,10 @@ RemoteViewerCore::RemoteViewerCore(const TCHAR *host, UINT16 port,
   m_tcpConnection(&m_logWriter),
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
   m_decoderStore(&m_logWriter),
-  m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter)
+  m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter),
+  m_dispatchDataProvider(0),
+  m_isTightEnabled(true),
+  m_isUtf8ClipboardEnabled(false)
 {
   init();
 
@@ -94,7 +99,10 @@ RemoteViewerCore::RemoteViewerCore(SocketIPv4 *socket,
   m_tcpConnection(&m_logWriter),
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
   m_decoderStore(&m_logWriter),
-  m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter)
+  m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter),
+  m_dispatchDataProvider(0),
+  m_isTightEnabled(true),
+  m_isUtf8ClipboardEnabled(false)
 {
   init();
 
@@ -109,7 +117,10 @@ RemoteViewerCore::RemoteViewerCore(RfbInputGate *input, RfbOutputGate *output,
   m_tcpConnection(&m_logWriter),
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
   m_decoderStore(&m_logWriter),
-  m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter)
+  m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter),
+  m_dispatchDataProvider(0),
+  m_isTightEnabled(true),
+  m_isUtf8ClipboardEnabled(false)
 {
   init();
 
@@ -129,7 +140,6 @@ void RemoteViewerCore::init()
   m_decoderStore.addDecoder(new LastRectDecoder(&m_logWriter), -1);
   m_decoderStore.addDecoder(new PointerPosDecoder(&m_logWriter), -1);
   m_decoderStore.addDecoder(new RichCursorDecoder(&m_logWriter), -1);
-
   m_input = 0;
   m_output = 0;
 
@@ -141,6 +151,16 @@ void RemoteViewerCore::init()
   m_forceFullUpdate = false;
 
   m_updateTimeout = 0;
+
+  addClientMsgCapability(ClientMsgDefs::CLIENT_CUT_TEXT_UTF8,
+    VendorDefs::TIGHTVNC,
+    Utf8CutTextDefs::CLIENT_CUT_TEXT_UTF8_SIG, 
+    _T("UTF-8 clipboard"));
+
+  addClientMsgCapability(ClientMsgDefs::ENABLE_CUT_TEXT_UTF8,
+    VendorDefs::TIGHTVNC,
+    Utf8CutTextDefs::ENABLE_CUT_TEXT_UTF8_SIG,
+    _T("enable UTF-8 clipboard"));
 }
 
 RemoteViewerCore::~RemoteViewerCore()
@@ -415,9 +435,16 @@ void RemoteViewerCore::sendCutTextEvent(const StringStorage *cutText)
   if (!wasConnected()) {
     return;
   }
-  m_logWriter.detail(_T("Sending clipboard cut text: \"%s\"..."), cutText->getString());
+
   RfbCutTextEventClientMessage cutTextMessage(cutText);
-  cutTextMessage.send(m_output);
+  if (m_isUtf8ClipboardEnabled) {
+    m_logWriter.detail(_T("Sending UTF-8 clipboard cut text: \"%s\"..."), cutText->getString());
+    cutTextMessage.sendUtf8(m_output);
+  }
+  else {
+    m_logWriter.detail(_T("Sending clipboard cut text: \"%s\"..."), cutText->getString());
+    cutTextMessage.send(m_output);
+  }
   m_logWriter.debug(_T("Clipboard cut text: \"%s\" is sent"), cutText->getString());
 }
 
@@ -431,6 +458,23 @@ void RemoteViewerCore::allowCopyRect(bool allow)
 {
   m_decoderStore.allowCopyRect(allow);
   sendEncodings();
+}
+
+void RemoteViewerCore::allowUtf8Clipboard()
+{
+  m_isUtf8ClipboardEnabled = m_clientMsgCaps.isEnabled(ClientMsgDefs::CLIENT_CUT_TEXT_UTF8);
+  if (m_isUtf8ClipboardEnabled) {
+    m_logWriter.debug(_T("Server supports Utf8 Clipboard recieving."));
+  }
+  else {
+    m_logWriter.debug(_T("Server does not support Utf8 Clipboard recieving, ClientCutTextUtf8 messages disabled."));
+  }
+  if (m_clientMsgCaps.isEnabled(ClientMsgDefs::ENABLE_CUT_TEXT_UTF8)) {
+    m_logWriter.debug(_T("Sending EnableCutTextUtf8 message."));
+    AutoLock al(m_output);
+    m_output->writeUInt32(ClientMsgDefs::ENABLE_CUT_TEXT_UTF8);
+    m_output->flush();
+  }
 }
 
 void RemoteViewerCore::setCompressionLevel(int newLevel)
@@ -551,8 +595,8 @@ void RemoteViewerCore::connectToHost()
 
 void RemoteViewerCore::authenticate()
 {
-  m_logWriter.detail(_T("Negotiating about security type..."));
-  int authenticationType = negotiateAboutSecurityType();
+  m_logWriter.detail(_T("Negotiating security type..."));
+  int authenticationType = negotiateSecurityType();
   m_logWriter.info(_T("Authentication type accepted: %s (%d)"),
                    getAuthenticationTypeName(authenticationType).getString(),
                    authenticationType);
@@ -602,7 +646,7 @@ void RemoteViewerCore::enableTightSecurityType(bool enabled)
   m_isTightEnabled = enabled;	
 }
 
-int RemoteViewerCore::negotiateAboutSecurityType()
+int RemoteViewerCore::negotiateSecurityType()
 {
   m_logWriter.detail(_T("Reading list of security types..."));
   // read list of security types
@@ -871,6 +915,9 @@ void RemoteViewerCore::execute()
     m_logWriter.info(_T("Protocol stage is \"Encoding select\"."));
     sendEncodings();
 
+    // send ENABLE_CUT_TEXT_UTF8 if server has the capability
+    allowUtf8Clipboard();
+
     // send request of frame buffer update
     m_logWriter.info(_T("Protocol stage is \"Working phase\"."));
     sendFbUpdateRequest(false);
@@ -898,6 +945,10 @@ void RemoteViewerCore::execute()
       case ServerMsgDefs::SERVER_CUT_TEXT:
         m_logWriter.detail(_T("Received message: SERVER_CUT_TEXT"));
         receiveServerCutText();
+        break;
+      case ServerMsgDefs::SERVER_CUT_TEXT_UTF8:
+        m_logWriter.detail(_T("Received message: SERVER_CUT_TEXT_UTF8"));
+        receiveServerCutTextUtf8();
         break;
 
       default:
@@ -1150,10 +1201,8 @@ void RemoteViewerCore::receiveServerCutText()
   std::vector<char> buffer(length + 1);
   m_input->readFully(&buffer.front(), length);
   buffer[length] = '\0';
-  
-  AnsiStringStorage cutTextAnsi(&buffer.front());
-
   StringStorage cutText;
+  AnsiStringStorage cutTextAnsi(&buffer.front());
   cutTextAnsi.toStringStorage(&cutText);
 
   m_logWriter.debug(_T("Cut text: %s"), cutText.getString());
@@ -1162,6 +1211,28 @@ void RemoteViewerCore::receiveServerCutText()
   } catch (const Exception &ex) {
     m_logWriter.error(_T("Error in CoreEventsAdapter::onCutText(): %s"), ex.getMessage());
   } catch (...) {
+    m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onCutText()"));
+  }
+}
+
+void RemoteViewerCore::receiveServerCutTextUtf8()
+{
+  UINT32 length = m_input->readUInt32();
+  std::vector<char> buffer(length + 1);
+  m_input->readFully(&buffer.front(), length);
+  buffer[length] = '\0';
+  StringStorage cutText;
+  Utf8StringStorage cutTextUtf8(&buffer);
+  cutTextUtf8.toStringStorage(&cutText);
+
+  m_logWriter.debug(_T("Cut text: %s"), cutText.getString());
+  try {
+    m_adapter->onCutText(&cutText);
+  }
+  catch (const Exception &ex) {
+    m_logWriter.error(_T("Error in CoreEventsAdapter::onCutText(): %s"), ex.getMessage());
+  }
+  catch (...) {
     m_logWriter.error(_T("Unknown error in CoreEventsAdapter::onCutText()"));
   }
 }
@@ -1195,31 +1266,6 @@ void RemoteViewerCore::handshake()
   char serverProtocol[13];
   serverProtocol[12] = 0;
   m_input->readFully(serverProtocol, 12);
-
-  //
-  // Here we safely save a local copy of m_dispatchDataProvider, so that it
-  // does not change during the following execution flow.
-  //
-  // NOTE: It's possible that this->m_dispatchDataProvider is not null here
-  // but will become null at the moment of calling the callback function of
-  // DispatchDataProvider. It should be ok as long as that instance of
-  // DispatchDataProvider is kept valid until this->waitTermination() exits.
-  //
-  // FIXME: First make sure that's a dispatched connection, then look at m_dispatchDataProvider?
-  DispatchDataProvider *dispatchDataProvider;
-  {
-    AutoLock al(&m_dispatchDataProviderLock);
-    dispatchDataProvider = m_dispatchDataProvider;
-  }
-
-  // Support connections to Dispatcher.
-  if (dispatchDataProvider != 0) {
-    bool connectedToDispatcher = DispatcherProtocol::checkProtocolSignature(serverProtocol);
-    if (connectedToDispatcher) {
-      handleDispatcherProtocol(dispatchDataProvider);
-      m_input->readFully(serverProtocol, 12); // now expecting "RFB XXX.XXX"
-    }
-  }
 
   m_major = strtol(&serverProtocol[4], 0, 10);
   m_minor = strtol(&serverProtocol[8], 0, 10);
@@ -1258,22 +1304,6 @@ void RemoteViewerCore::handshake()
   clientProtocolAnsi.fromStringStorage(&getProtocolString());
   m_output->writeFully(clientProtocolAnsi.getString(), 12);
   m_output->flush();
-}
-
-void RemoteViewerCore::handleDispatcherProtocol(DispatchDataProvider *callback)
-{
-  StringStorage dispatcherName;
-  StringStorage keyword;
-  UINT32 id;
-  bool gotData = callback->getDispatchData(&id, &dispatcherName, &keyword);
-  if (!gotData) {
-    throw BadDispatcherProtocolException(_T("Connection ID is not specified"));
-  }
-
-  DispatcherProtocol proto(m_input, m_output, "", true, id, "", &m_logWriter);
-
-  proto.continueTcpDispatchProtocol();
-  proto.waitNextProtocolContinue();
 }
 
 /**

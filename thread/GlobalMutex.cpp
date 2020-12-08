@@ -41,6 +41,7 @@ GlobalMutex::GlobalMutex(const TCHAR *name, bool interSession, bool throwIfExist
   if (GetLastError() != ERROR_ALREADY_EXISTS) {
     setAccessToAll(m_mutex);
   } else if (throwIfExist) {
+    CloseHandle(m_mutex);
     throw SystemException();
   }
 }

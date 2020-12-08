@@ -95,6 +95,9 @@
     <ClCompile Include="GetCPUtime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MemUsage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnsiStringStorage.h">
@@ -200,6 +203,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GetCPUtime.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MemUsage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

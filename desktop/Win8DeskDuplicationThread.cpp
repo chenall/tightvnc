@@ -89,11 +89,11 @@ void Win8DeskDuplicationThread::execute()
         {
           begins[i] = DateTime::now();
           WinDxgiAcquiredFrame acquiredFrame(&m_outDupl[i], ACQUIRE_TIMEOUT);
-				  if (acquiredFrame.wasTimeOut()) {
-					  timeouts[i]++;
-					  m_log->debug(_T("Timeout on acquire frame for output: %d"), i);
-					  Thread::yield();
-					  continue;
+		  if (acquiredFrame.wasTimeOut()) {
+			timeouts[i]++;
+			m_log->debug(_T("Timeout on acquire frame for output: %d"), i);
+			Thread::yield();
+			continue;
           }
           else {
             int accum_frames = acquiredFrame.getFrameInfo()->AccumulatedFrames;
@@ -114,9 +114,11 @@ void Win8DeskDuplicationThread::execute()
             }
 
             // Check cursor pointer for updates.
-            {
+            try {
               processCursor(info, i);
-            } // Cursor
+			} catch (WinDxException &e) {
+		      m_log->debug(_T("Error on cursor processing: %s, (%x)"), e.getMessage(), (int)e.getErrorCode());
+			} // Cursor
           }
         }
         Thread::yield();
@@ -307,6 +309,7 @@ void Win8DeskDuplicationThread::processCursor(const DXGI_OUTDUPL_FRAME_INFO *inf
     bool newVisibility = pointerPos.Visible != FALSE;
     bool visibleChanged = m_targetCurShape->getIsVisible() != newVisibility;
     if (visibleChanged) {
+	  m_log->debug(newVisibility ? _T("Cursor became visible") : _T("Cursor became not visible"));
       m_targetCurShape->setVisibility(newVisibility, out);
       m_duplListener->onCursorShapeChanged();
     }
@@ -314,11 +317,13 @@ void Win8DeskDuplicationThread::processCursor(const DXGI_OUTDUPL_FRAME_INFO *inf
     //
     bool shapeChanged = info->PointerShapeBufferSize != 0;
     if (shapeChanged) {
-      m_outDupl[out].getFrameCursorShape(m_targetCurShape->getCursorShapeForWriting(), info->PointerShapeBufferSize);
+	  m_log->debug(_T("Cursor shape chagned"));
+	  m_outDupl[out].getFrameCursorShape(m_targetCurShape->getCursorShapeForWriting(), info->PointerShapeBufferSize);
       m_duplListener->onCursorShapeChanged();
     }
 
     if (pointerPos.Visible) {
+  	  m_log->debug(_T("Cursor position chagned"));
       Point hotPoint = m_targetCurShape->getCursorShape()->getHotSpot();
       Rect targetRect = m_targetRects[out];
       m_duplListener->onCursorPositionChanged(pointerPos.Position.x + targetRect.left + hotPoint.x,

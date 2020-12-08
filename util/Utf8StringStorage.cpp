@@ -67,6 +67,11 @@ size_t Utf8StringStorage::getSize() const
   return m_buffer.size();
 }
 
+size_t Utf8StringStorage::getLength() const
+{
+  return m_buffer.size() - 1;
+}
+
 void Utf8StringStorage::fromStringStorage(const StringStorage *src)
 {
 #ifndef _UNICODE

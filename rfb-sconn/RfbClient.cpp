@@ -26,11 +26,13 @@
 #include "thread/AutoLock.h"
 #include "RfbCodeRegistrator.h"
 #include "ft-server-lib/FileTransferRequestHandler.h"
+#include "EchoExtensionRequestHandler.h"
 #include "network/socket/SocketStream.h"
 #include "RfbInitializer.h"
 #include "ClientAuthListener.h"
 #include "server-config-lib/Configurator.h"
 #include "io-lib/BufferedInputStream.h"
+#include "util/MemUsage.h"
 
 RfbClient::RfbClient(NewConnectionEvents *newConnectionEvents,
                      SocketIPv4 *socket,
@@ -176,8 +178,6 @@ void RfbClient::execute()
 
   ServerConfig *config = Configurator::getInstance()->getServerConfig();
 
-  WindowsEvent connClosingEvent;
-
   SocketStream sockStream(m_socket);
 
   RfbOutputGate output(&sockStream);
@@ -185,6 +185,7 @@ void RfbClient::execute()
   RfbInputGate input(&bufInput);
 
   FileTransferRequestHandler *fileTransfer = 0;
+  EchoExtensionRequestHandler *echoExtension = 0;
 
   RfbInitializer rfbInitializer(&sockStream, m_extAuthListener, this,
                                 !m_isOutgoing);
@@ -217,7 +218,7 @@ void RfbClient::execute()
     m_constViewPort.initDesktopInterface(m_desktop);
     m_dynamicViewPort.initDesktopInterface(m_desktop);
 
-    RfbDispatcher dispatcher(&input, &connClosingEvent);
+    RfbDispatcher dispatcher(&input, &m_connClosingEvent);
     m_log->debug(_T("Dispatcher has been created"));
     CapContainer srvToClCaps, clToSrvCaps, encCaps;
     RfbCodeRegistrator codeRegtor(&dispatcher, &srvToClCaps, &clToSrvCaps,
@@ -250,6 +251,9 @@ void RfbClient::execute()
     } else {
       m_log->info(_T("File transfer is not allowed"));
     }
+    // echo extension initialization
+    echoExtension = new EchoExtensionRequestHandler(&codeRegtor, &output, m_log);
+    m_log->debug(_T("Echo extension handler has been created"));
 
     // Second initialization phase
     // Send and receive initialization information between server and viewer
@@ -268,7 +272,7 @@ void RfbClient::execute()
     m_log->info(_T("Entering normal phase of the RFB protocol"));
     dispatcher.resume();
 
-    connClosingEvent.waitForEvent();
+    m_connClosingEvent.waitForEvent();
   } catch (Exception &e) {
     m_log->error(_T("Connection will be closed: %s"), e.getMessage());
     sysLogMessage.format(_T("The client %s #%d has been")
@@ -283,12 +287,14 @@ void RfbClient::execute()
   notifyAbStateChanging(IN_PENDING_TO_REMOVE);
 
   if (fileTransfer)         delete fileTransfer;
+  if (echoExtension)        delete echoExtension;
   if (m_clipboardExchange)  delete m_clipboardExchange;
   if (m_clientInputHandler) delete m_clientInputHandler;
   if (m_updateSender)       delete m_updateSender;
 
   // Let the client manager remove us from the client lists.
   notifyAbStateChanging(IN_READY_TO_REMOVE);
+  m_log->debug(_T("End of RfbClient, process memory usage: %d "), MemUsage::getCurrentMemUsage());
 }
 
 void RfbClient::sendUpdate(const UpdateContainer *updateContainer,
@@ -298,7 +304,7 @@ void RfbClient::sendUpdate(const UpdateContainer *updateContainer,
 
   if (m_idleTimeout != 0  && m_idleTimer.isElapsed()) {
     m_log->error(_T("Connection will be closed due to client inactivity. IdleTimeout = %d ms"), m_idleTimeout);
-    disconnect();
+    m_connClosingEvent.notify();
   }
 }
 
@@ -322,7 +328,7 @@ void RfbClient::onKeyboardEvent(UINT32 keySym, bool down)
 
   if (mayPass) {
     m_desktop->setKeyboardEvent(keySym, down);
-  m_idleTimer.reset();
+    m_idleTimer.reset();
   }
 }
 

@@ -69,6 +69,7 @@ void CursorUpdates::update(const EncodeOptions *encodeOptions,
 
   if (!richEnabled && !posEnabled) {
     // Draw the shape on the frame buffer.
+	m_log->debug(_T("Draw the shape of cursor on the frame buffer."));
     drawCursor(updCont, fb);
   }
 
@@ -87,12 +88,14 @@ void CursorUpdates::update(const EncodeOptions *encodeOptions,
       if (methodWasChanged) {
         m_isDrawCursorMethod = false;
         // Restore background under the cursor shape
-        restoreFrameBuffer(fb);
+		m_log->debug(_T("Restore background under the cursor shape"));
+		restoreFrameBuffer(fb);
         Rect backgroundRect = getBackgroundRect();
         updCont->changedRegion.addRect(&backgroundRect);
       }
     }
     if (m_isDrawCursorMethod) {
+  	  m_log->debug(_T("Draw the shape of cursor on the frame buffer (DrawCursorMethod)"));
       drawCursor(updCont, fb);
       updCont->cursorShapeChanged = methodWasChanged;
     } else {

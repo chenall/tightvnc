@@ -51,7 +51,7 @@ public:
    *
    * See description of Process constructor.
    */
-  CurrentConsoleProcess(LogWriter *log, const TCHAR *path = 0, const TCHAR *args = 0);
+  CurrentConsoleProcess(LogWriter *log, bool connectRdpSession, const TCHAR *path = 0, const TCHAR *args = 0);
   /**
    * Destoys instance of class.
    */
@@ -69,6 +69,7 @@ public:
 
 private:
   LogWriter *m_log;
+  bool m_connectRdpSession;
 };
 
 #endif

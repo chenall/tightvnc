@@ -23,6 +23,8 @@
 //
 
 #include "util/AnsiStringStorage.h"
+#include "util/Utf8StringStorage.h"
+
 
 #include "RfbCutTextEventClientMessage.h"
 
@@ -48,5 +50,18 @@ void RfbCutTextEventClientMessage::send(RfbOutputGate *output)
   output->writeUInt8(0);
   output->writeUInt32(length);
   output->writeFully(cutTextAnsi.getString(), length);
+  output->flush();
+}
+
+void RfbCutTextEventClientMessage::sendUtf8(RfbOutputGate *output)
+{
+  Utf8StringStorage cutTextUtf;
+  cutTextUtf.fromStringStorage(&m_cutText);
+  UINT32 length = static_cast<UINT32>(cutTextUtf.getLength());
+
+  AutoLock al(output);
+  output->writeUInt32(ClientMsgDefs::CLIENT_CUT_TEXT_UTF8);
+  output->writeUInt32(length);
+  output->writeFully(cutTextUtf.getString(), length);
   output->flush();
 }

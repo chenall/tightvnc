@@ -123,6 +123,7 @@ private:
   bool m_isMarkedOk;
   LocalMutex m_clientStateMut;
   ClientTerminationListener *m_extTermListener;
+  WindowsEvent m_connClosingEvent;
 
   SocketIPv4 *m_socket;
 

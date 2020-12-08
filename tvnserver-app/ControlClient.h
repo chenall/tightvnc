@@ -34,6 +34,7 @@
 #include "thread/ThreadCollector.h"
 #include "log-writer/LogWriter.h"
 
+
 /**
  * ControlClient exception sclass.
  *
@@ -226,6 +227,8 @@ private:
   StringStorage m_gotDispatcherName;
   LocalMutex m_tcpDispValuesMutex;
 
+  ThreadCollector m_outgoingConnectionThreadCollector;
+  
   LogWriter *m_log;
 
   /**

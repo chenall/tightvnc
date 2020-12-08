@@ -36,6 +36,7 @@
 #include "UpdateListener.h"
 #include "log-writer/LogWriter.h"
 #include "Win8ScreenDriverImpl.h"
+#include "CopyRectDetector.h"
 
 class Win8ScreenDriver : public WinVideoRegionUpdaterImpl
 {
@@ -77,6 +78,8 @@ private:
   // This member must be always gueranted non zero. Otherwise an excption must
   // be provided from the constructor of this class.
   Win8ScreenDriverImpl *m_drvImpl;
+  CopyRectDetector m_copyRectDetector;
+  LocalMutex m_drvImplMutex;
 
   CursorShape m_cursorShape;
 

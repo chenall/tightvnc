@@ -123,9 +123,6 @@
     <ClCompile Include="VncAuthenticationHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DispatchIdProvider.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="WatermarksController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -237,12 +234,6 @@
       <Filter>Decoders</Filter>
     </ClInclude>
     <ClInclude Include="VncAuthenticationHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DispatchDataProvider.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DispatchIdProvider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WatermarksController.h">

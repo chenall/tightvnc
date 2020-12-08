@@ -46,6 +46,7 @@ ServerConfig::ServerConfig()
   m_videoRecognitionInterval(3000), m_grabTransparentWindows(true),
   m_saveLogToAllUsersPath(false), m_hasControlPassword(false),
   m_showTrayIcon(true),
+  m_connectToRdp(false),
   m_idleTimeout(0)
 {
   memset(m_primaryPassword,  0, sizeof(m_primaryPassword));
@@ -89,6 +90,8 @@ void ServerConfig::serialize(DataOutputStream *output)
   output->writeUInt32(m_localInputPriorityTimeout);
   output->writeInt8(m_defaultActionAccept ? 1 : 0);
   output->writeUInt32(m_queryTimeout);
+  output->writeInt8(m_connectToRdp ? 1 : 0);
+  
 
   m_portMappings.serialize(output);
 
@@ -158,6 +161,7 @@ void ServerConfig::deserialize(DataInputStream *input)
   m_localInputPriorityTimeout = input->readUInt32();
   m_defaultActionAccept = input->readInt8() == 1;
   m_queryTimeout = input->readUInt32();
+  m_connectToRdp = input->readInt8() == 1;
 
   m_portMappings.deserialize(input);
 
@@ -207,6 +211,20 @@ void ServerConfig::setShowTrayIconFlag(bool val)
   AutoLock l(this);
 
   m_showTrayIcon = val;
+}
+
+bool ServerConfig::getConnectToRdpFlag()
+{
+  AutoLock l(this);
+
+  return m_connectToRdp;
+}
+
+void ServerConfig::setConnectToRdpFlag(bool val)
+{
+  AutoLock l(this);
+
+  m_connectToRdp = val;
 }
 
 void ServerConfig::getLogFileDir(StringStorage *logFilePath)

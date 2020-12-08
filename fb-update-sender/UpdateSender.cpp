@@ -31,6 +31,7 @@
 #include "util/inttypes.h"
 #include "util/Exception.h"
 #include "UpdSenderMsgDefs.h"
+#include "rfb-sconn/ClipboardExchange.h"
 
 UpdateSender::UpdateSender(RfbCodeRegistrator *codeRegtor,
                            UpdateRequestListener *updReqListener,
@@ -71,8 +72,6 @@ UpdateSender::UpdateSender(RfbCodeRegistrator *codeRegtor,
                         PseudoEncDefs::SIG_RICH_CURSOR);
   codeRegtor->addEncCap(PseudoEncDefs::POINTER_POS,      VendorDefs::TIGHTVNC,
                         PseudoEncDefs::SIG_POINTER_POS);
-  codeRegtor->addEncCap(PseudoEncDefs::DESKTOP_SIZE,     VendorDefs::TIGHTVNC,
-                        PseudoEncDefs::SIG_DESKTOP_SIZE);
 
   codeRegtor->addClToSrvCap(UpdSenderClientMsgDefs::RFB_VIDEO_FREEZE,
                             VendorDefs::TIGHTVNC,
@@ -91,6 +90,7 @@ UpdateSender::~UpdateSender()
 {
   terminate();
   wait();
+  delete m_updateKeeper;
 }
 
 void UpdateSender::onTerminate()
@@ -141,10 +141,11 @@ void UpdateSender::newUpdates(const UpdateContainer *updateContainer,
   addUpdateContainer(updateContainer);
 
   m_cursorUpdates.updateCursorShape(cursorShape);
-
-  AutoLock al(&m_reqRectLocMut);
-  m_busy = true;
-  m_newUpdatesEvent.notify();
+  {
+    AutoLock al(&m_reqRectLocMut);
+    m_busy = true;
+    m_newUpdatesEvent.notify();
+  }
   m_log->debug(_T("Client #%d is waking up"), m_id);
 }
 
@@ -659,14 +660,20 @@ void UpdateSender::execute()
 
   while(!isTerminating()) {
     m_newUpdatesEvent.waitForEvent();
-    m_busy = true;
+    {
+      AutoLock al(&m_reqRectLocMut);
+      m_busy = true;
+    }
     m_log->debug(_T("Update sender thread of client #%d is awake"), m_id);
     if (!isTerminating()) {
       try {
         m_log->debug(_T("UpdateSender::Trying to call the sendUpdate() function"));
         sendUpdate();
         m_log->debug(_T("The sendUpdate() function has finished"));
-        m_busy = false;
+        {
+          AutoLock al(&m_reqRectLocMut);
+          m_busy = false;
+        }
       } catch(Exception &e) {
         m_log->interror(_T("The update sender thread caught an error and will")
                    _T(" be terminated: %s"), e.getMessage());

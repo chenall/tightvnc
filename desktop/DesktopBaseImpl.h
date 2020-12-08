@@ -101,7 +101,6 @@ protected:
 
   // Clipboard
   StringStorage m_receivedClip;
-  StringStorage m_sentClip;
   LocalMutex m_storedClipCritSec;
 
   // External listeners

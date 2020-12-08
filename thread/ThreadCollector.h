@@ -37,14 +37,14 @@ typedef list<Thread *> ThreadList;
 // Collector threads.
 // ThreadCollector has it's own thread which deletes in infinity loop not
 // active threads.
-class ThreadCollector : private Thread
+class ThreadCollector : protected Thread
 {
 public:
   ThreadCollector();
   virtual ~ThreadCollector();
 
   // Adds thread to a self list.
-  void addThread(Thread *thread);
+  virtual void addThread(Thread *thread);
 
   // Forces terminates all threads, waits until they dies and than
   // delete them from memory and thread list.

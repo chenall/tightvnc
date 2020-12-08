@@ -74,12 +74,6 @@ TvnServer::TvnServer(bool runsInServiceContext,
                  ProductNames::SERVER_PRODUCT_NAME,
                  BuildTime::DATE);
 
-  if (timeBeginPeriod(m_contextSwitchResolution) == TIMERR_NOERROR) {
-    m_log.message(_T("Set context switch resolution: %d ms"), m_contextSwitchResolution);
-  } else {
-    m_log.message(_T("Can't change context switch resolution to: %d ms"), m_contextSwitchResolution);
-  }
-
   // Initialize configuration.
   // FIXME: It looks like configurator may be created as a member object.
   Configurator *configurator = Configurator::getInstance();
@@ -136,7 +130,6 @@ TvnServer::TvnServer(bool runsInServiceContext,
 
 TvnServer::~TvnServer()
 {
-  timeEndPeriod(m_contextSwitchResolution);
   Configurator::getInstance()->removeListener(this);
 
   stopControlServer();
@@ -274,10 +267,20 @@ bool TvnServer::isRunningAsService() const
 
 void TvnServer::afterFirstClientConnect()
 {
+  if (timeBeginPeriod(m_contextSwitchResolution) == TIMERR_NOERROR) {
+    m_log.message(_T("Set context switch resolution: %d ms"), m_contextSwitchResolution);
+  }
+  else {
+    m_log.message(_T("Can't change context switch resolution to: %d ms"), m_contextSwitchResolution);
+  }
+
 }
 
 void TvnServer::afterLastClientDisconnect()
 {
+  m_log.message(_T("Restore context switch resolution"));
+  timeEndPeriod(m_contextSwitchResolution);
+
   ServerConfig::DisconnectAction action = m_srvConfig->getDisconnectAction();
 
   // Disconnect action must be executed in process on interactive user session to take effect.
@@ -303,7 +306,8 @@ void TvnServer::afterLastClientDisconnect()
   Environment::getCurrentModulePath(&thisModulePath);
   thisModulePath.quoteSelf();
   if (isRunningAsService()) {
-    process = new CurrentConsoleProcess(&m_log, thisModulePath.getString(),
+    bool connectToRdp = m_srvConfig->getConnectToRdpFlag();
+    process = new CurrentConsoleProcess(&m_log, connectToRdp, thisModulePath.getString(),
                                         keys.getString());
   } else {
     process = new Process(thisModulePath.getString(), keys.getString());

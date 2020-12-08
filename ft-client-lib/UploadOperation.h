@@ -191,6 +191,11 @@ protected:
   bool m_gotoChild;
   bool m_gotoParent;
   bool m_firstUpload;
+
+  // request data size changes dynamicaly depends on request rate
+  size_t m_bufferSize;
+  DateTime m_lastRequestTime;
+
 };
 
 #endif

@@ -557,10 +557,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ConnectToTcpDispatcherThread.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\ControlAppAuthenticator.cpp"
 				>
 			</File>
@@ -679,10 +675,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ConnectToTcpDispatcherThread.h"
-				>
-			</File>
-			<File
 				RelativePath=".\ControlAppAuthenticator.h"
 				>
 			</File>
@@ -764,10 +756,6 @@
 			</File>
 			<File
 				RelativePath=".\SessionChangesWatcher.h"
-				>
-			</File>
-			<File
-				RelativePath=".\TcpDispatcherConnectionListener.h"
 				>
 			</File>
 			<File

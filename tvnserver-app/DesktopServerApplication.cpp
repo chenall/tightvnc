@@ -57,12 +57,6 @@ DesktopServerApplication::DesktopServerApplication(HINSTANCE appInstance,
   } catch (...) {
   }
 
-  if (timeBeginPeriod(m_contextSwitchResolution) == TIMERR_NOERROR) {
-    m_log.message(_T("Set context switch resolution: %d ms"), m_contextSwitchResolution);
-  } else {
-    m_log.message(_T("Can't change context switch resolution to: %d ms"), m_contextSwitchResolution);
-  }
-
   DesktopServerCommandLine cmdLineParser;
 
   cmdLineParser.parse(cmdArgs);
@@ -133,7 +127,6 @@ DesktopServerApplication::DesktopServerApplication(HINSTANCE appInstance,
 
 DesktopServerApplication::~DesktopServerApplication()
 {
-  timeEndPeriod(m_contextSwitchResolution);
   m_log.info(_T("The Desktop server application destructor has been called"));
   freeResources();
   m_log.info(_T("Desktop server application has been terminated"));

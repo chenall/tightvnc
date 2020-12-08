@@ -25,7 +25,6 @@
 #include "ControlClient.h"
 #include "TvnServer.h"
 #include "OutgoingRfbConnectionThread.h"
-#include "ConnectToTcpDispatcherThread.h"
 
 #include "tvncontrol-app/ControlProto.h"
 
@@ -43,6 +42,8 @@
 
 #include <time.h>
 #include "util/AnsiStringStorage.h"
+#include "util/MemUsage.h"
+
 
 const UINT32 ControlClient::REQUIRES_AUTH[] = { ControlProto::ADD_CLIENT_MSG_ID,
                                                 ControlProto::DISCONNECT_ALL_CLIENTS_MSG_ID,
@@ -100,15 +101,17 @@ void ControlClient::execute()
   if (!Configurator::getInstance()->getServerConfig()->isControlAuthEnabled()) {
     m_authPassed = true;
   }
-
+  int i = 0;
   try {
     while (!isTerminating()) {
       UINT32 messageId = m_gate->readUInt32();
       UINT32 messageSize = m_gate->readUInt32();
 
-      m_log->detail(_T("Recieved control message ID %u, size %u"),
+      m_log->debug(_T("Recieved control message ID %u, size %u"),
                   (unsigned int)messageId, (unsigned int)messageSize);
-
+      if (++i % 10 == 0) {
+        m_log->debug(_T("process memory usage: %d "), MemUsage::getCurrentMemUsage());
+      }
       bool requiresControlAuth = Configurator::getInstance()->getServerConfig()->isControlAuthEnabled();
       bool repeatAuthEnabled = Configurator::getInstance()->getServerConfig()->getControlAuthAlwaysChecking();
 
@@ -164,7 +167,6 @@ void ControlClient::execute()
           break;
         case ControlProto::CONNECT_TO_TCPDISP_MSG_ID:
           m_log->message(_T("Connect to a tcp dispatcher command requested"));
-          connectToTcpDispatcher();
           break;
         case ControlProto::GET_SERVER_INFO_MSG_ID:
           m_log->detail(_T("Control client requests server info"));
@@ -311,16 +313,7 @@ void ControlClient::getServerInfoMsgRcvd()
   TvnServer::getInstance()->getServerInfo(&info);
 
   StringStorage status;
-  {
-    AutoLock al(&m_tcpDispValuesMutex);
-    if (m_tcpDispId != 0) {
-      status.format(_T("[ID = %u] %s"),
-                    m_tcpDispId,
-                    info.m_statusText.getString());
-    } else {
-      status.setString(info.m_statusText.getString());
-    }
-  }
+  status.setString(info.m_statusText.getString());
 
   m_gate->writeUInt32(ControlProto::REPLY_OK);
 
@@ -341,6 +334,9 @@ void ControlClient::disconnectAllMsgRcvd()
   m_gate->writeUInt32(ControlProto::REPLY_OK);
 
   m_rfbClientManager->disconnectAllClients();
+
+  m_log->message(_T("Disconnecting clients"));
+  m_outgoingConnectionThreadCollector.destroyAllThreads();
 }
 
 void ControlClient::shutdownMsgRcvd()
@@ -388,51 +384,8 @@ void ControlClient::addClientMsgRcvd()
 
   newConnectionThread->resume();
 
-  ZombieKiller::getInstance()->addZombie(newConnectionThread);
-}
-
-void ControlClient::connectToTcpDispatcher()
-{
-  m_gate->writeUInt32(ControlProto::REPLY_OK);
-
-  // Read a hostname.
-  StringStorage connectString;
-  m_gate->readUTF8(&connectString);
-
-  // Read a dispatcher name.
-  StringStorage dispatcherName;
-  m_gate->readUTF8(&dispatcherName);
-  // Read a keyword.
-  StringStorage keyword;
-  m_gate->readUTF8(&keyword);
-  // Read a connection id.
-  UINT32 connectionId = m_gate->readUInt32();
-
-  // Parse host and port from connection string.
-  AnsiStringStorage connectStringAnsi(&connectString);
-  HostPath hp(connectStringAnsi.getString(), 5900);
-  if (!hp.isValid()) {
-    return;
-  }
-  StringStorage host;
-  AnsiStringStorage ansiHost(hp.getVncHost());
-  ansiHost.toStringStorage(&host);
-
-  // Converting got TCHAR strings to AnsiStringStorage format
-  AnsiStringStorage ansiDispName(&dispatcherName);
-  AnsiStringStorage ansiKeyword(&keyword);
-
-  // Make connection in separate thread.
-  ConnectToTcpDispatcherThread *newConnectionThread =
-    new ConnectToTcpDispatcherThread(host.getString(),
-                                     hp.getVncPort(),
-                                     &ansiDispName,
-                                     connectionId,
-                                     &ansiKeyword,
-                                     m_rfbClientManager,
-                                     m_log);
-
-  ZombieKiller::getInstance()->addZombie(newConnectionThread);
+//  ZombieKiller::getInstance()->addZombie(newConnectionThread);
+  m_outgoingConnectionThreadCollector.addThread(newConnectionThread);
 }
 
 void ControlClient::setServerConfigMsgRcvd()

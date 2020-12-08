@@ -52,7 +52,7 @@ typedef std::list<RfbClient *>::iterator ClientListIter;
 struct BanProp
 {
   unsigned int count;
-  DateTime banFirstTime;
+  DateTime banLastTime;
 };
 typedef std::map<StringStorage, BanProp> BanList;
 typedef BanList::iterator BanListIter;
@@ -94,6 +94,10 @@ public:
   void addNewConnection(SocketIPv4 *socket, ViewPortState *constViewPort,
                         bool viewOnly, bool isOutgoing);
 
+  // returns list of bans.
+  BanList getBanList() { AutoLock al(&m_banListMutex); return m_banList; };
+  StringStorage getBanListString();
+
 protected:
   // Listen functions
   virtual void onClientTerminate();
@@ -123,8 +127,6 @@ private:
   // from the ban list. Else the ip will be added to the ban or will be
   // increased it count.
   void updateIpInBan(const StringStorage *ip, bool success);
-  // Removes deprecated bans from the ban list.
-  void refreshBan();
 
   ClientList m_nonAuthClientList;
   ClientList m_clientList;
@@ -135,8 +137,6 @@ private:
   // Acces to the viewport must be covered by the m_clientListLocker mutex.
   ViewPortState m_dynViewPort;
 
-  static const int MAX_BAN_COUNT = 10;
-  static const int BAN_TIME = 3000 * MAX_BAN_COUNT; // milliseconds
   BanList m_banList;
   WindowsEvent m_banTimer;
   LocalMutex m_banListMutex;

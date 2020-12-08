@@ -212,25 +212,17 @@ void DesktopBaseImpl::setNewClipText(const StringStorage *newClipboard)
   _ASSERT(m_userInput != 0);
   _ASSERT(m_extDeskTermListener != 0);
 
-  m_log->info(_T("set new clipboard text"));
+  m_log->debug(_T("set new clipboard text, length: %d"), newClipboard->getLength());
 
-  bool isEqual;
   {
     AutoLock al(&m_storedClipCritSec);
-    isEqual = m_sentClip.isEqualTo(newClipboard);
-    isEqual = isEqual || m_receivedClip.isEqualTo(newClipboard);
+    m_receivedClip = *newClipboard;
   }
-  if (!isEqual) {
-    {
-      AutoLock al(&m_storedClipCritSec);
-      m_receivedClip = *newClipboard;
-    }
-    try {
-      m_userInput->setNewClipboard(newClipboard);
-    } catch (Exception &e) {
+  try {
+    m_userInput->setNewClipboard(newClipboard);
+  } catch (Exception &e) {
 	  m_log->error(_T("Exception in DesktopBaseImpl::setNewClipText %s"), e.getMessage());
-      m_extDeskTermListener->onAbnormalDesktopTerminate();
-    }
+    m_extDeskTermListener->onAbnormalDesktopTerminate();
   }
 }
 
@@ -292,16 +284,23 @@ void DesktopBaseImpl::onClipboardUpdate(const StringStorage *newClipboard)
 {
   _ASSERT(m_extClipListener != 0);
 
-  m_log->detail(_T("clipboard update detected"));
+  m_log->detail(_T("clipboard update detected, length: %d"), newClipboard->getLength());
   bool isEqual;
   {
     AutoLock al(&m_storedClipCritSec);
     isEqual = m_receivedClip.isEqualTo(newClipboard);
   }
   if (!isEqual) {
+    {
+      AutoLock al(&m_storedClipCritSec);
+      m_receivedClip = _T("");
+    }
     // Send new clipboard text, even if it is empty.
-    m_log->info(_T("Send new clipboard content"));
+    m_log->debug(_T("Send new clipboard content"));
     m_extClipListener->onClipboardUpdate(newClipboard);
+  }
+  else {
+    m_log->debug(_T("do not send new clipboard content"));
   }
 }
 

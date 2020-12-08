@@ -47,7 +47,8 @@ public:
 
   // Returns size of string in bytes, including terminating null character.
   size_t getSize() const;
-
+  // Returns length of string (in characters, not including terminating null character).
+  size_t getLength() const;
   void fromStringStorage(const StringStorage *src);
   void toStringStorage(StringStorage *dst);
 

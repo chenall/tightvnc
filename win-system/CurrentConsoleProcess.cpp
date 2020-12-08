@@ -30,9 +30,10 @@
 #include "win-system/Workstation.h"
 #include "win-system/WTS.h"
 
-CurrentConsoleProcess::CurrentConsoleProcess(LogWriter *log, const TCHAR *path, const TCHAR *args)
+CurrentConsoleProcess::CurrentConsoleProcess(LogWriter *log, bool connectRdpSession, const TCHAR *path, const TCHAR *args)
 : Process(path, args),
-  m_log(log)
+  m_log(log),
+  m_connectRdpSession(connectRdpSession)
 {
 }
 
@@ -43,15 +44,27 @@ CurrentConsoleProcess::~CurrentConsoleProcess()
 void CurrentConsoleProcess::start()
 {
   cleanup();
+  DWORD rdpSession = 0;
+  DWORD sessionId;
 
-  DWORD sessionId = WTS::getActiveConsoleSessionId(m_log);
+  if (m_connectRdpSession) {
+    rdpSession = WTS::getRdpSessionId(m_log);
+  }
+  if (rdpSession) {
+    sessionId = rdpSession;
+    m_log->info(_T("Connect as RDP user at %d session"), sessionId);
+    m_log->info(_T("Try to start \"%s %s\" process"),
+      m_path.getString(),
+      m_args.getString());
+  } else {
+    sessionId = WTS::getActiveConsoleSessionId(m_log);
+    m_log->info(_T("Connect as current user at %d session"), sessionId);
+    m_log->info(_T("Try to start \"%s %s\" process"),
+      m_path.getString(),
+      m_args.getString());
+  }
+
   DWORD uiAccess  = 1; // Nonzero enables UI control
-
-  m_log->info(_T("Try to start \"%s %s\" process as current user at %d session"),
-            m_path.getString(),
-            m_args.getString(),
-            sessionId);
-
   PROCESS_INFORMATION pi;
   STARTUPINFO sti;
   getStartupInfo(&sti);

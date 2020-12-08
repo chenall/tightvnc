@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
+    <PropertyRef Id="WIX_ACCOUNT_USERS" />
     <!-- Properties that compete with the UI properties. If UI disabled
     (a silent mode) installer will use this properties else will use
     UI properties -->
     <Property Id='VIEWER_ASSOCIATE_VNC_EXTENSION' Secure='yes'> 1 </Property>
     <Property Id="SERVER_REGISTER_AS_SERVICE" Secure='yes'> 1 </Property>
+    <Property Id="SERVER_SERVICE_ONLY" Secure='yes'> 0 </Property>
     <Property Id="SERVER_ADD_FIREWALL_EXCEPTION" Secure='yes'> 1 </Property>
     <Property Id="VIEWER_ADD_FIREWALL_EXCEPTION" Secure='yes'> 1 </Property>
     <Property Id='SERVER_ALLOW_SAS' Secure='yes'> 1 </Property>
@@ -113,9 +115,51 @@
     <Property Id='SET_VIEWONLYPASSWORD' Secure='yes'> 0 </Property>
     <Property Id='VALUE_OF_VIEWONLYPASSWORD' Secure='yes'> </Property>
 
+    <Property Id='SET_VIDEORECOGNITIONINTERVAL'> 0 </Property>
+    <Property Id='VALUE_OF_VIDEORECOGNITIONINTERVAL'> 3000 </Property>
+
+    <Property Id='SET_VIDEOCLASSES'> 0 </Property>
+    <Property Id='VALUE_OF_VIDEOCLASSES' Secure='yes'> </Property>
+
+    <Property Id='SET_VIDEORECTS'> 0 </Property>
+    <Property Id='VALUE_OF_VIDEORECTS' Secure='yes'> </Property>
+
+    <Property Id='SET_IDLETIMEOUT'> 0 </Property>
+    <Property Id='VALUE_OF_IDLETIMEOUT'> 0 </Property>
+
+    <!-- FIXME: Set SET_CONNECTRDP to 0 in the release after 2.8.55  -->
+    <Property Id='SET_CONNECTRDP'> 1 </Property>
+    <Property Id='VALUE_OF_CONNECTRDP'> 0 </Property>
+
     <!-- Components to install above properties -->
     <DirectoryRef Id="TARGETDIR" DiskId="1">
   <?ifndef SERVER_FREE ?>
+      <Component Id='SetServiceOnly' Feature='Server' Guid='b01d61ca-0e56-4518-9ef4-734ade15e0f9' Permanent='yes'>
+	<RegistryKey Root="HKLM" 
+	  Key='Software\TightVNC\Server\ServiceOnly' 
+	  ForceCreateOnInstall='yes'
+	  ForceDeleteOnUninstall='yes'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+          <Permission Read="yes" GenericRead="yes"
+                 ReadPermission="yes" Synchronize="yes"
+                 GenericWrite="no"
+		 User='[WIX_ACCOUNT_USERS]'/>
+        </RegistryKey>
+        <Condition> 
+        	SERVICE_ONLY = 1 AND <![CDATA[IS_SILENT <> 1]]> OR
+	        SERVER_SERVICE_ONLY = 1 AND IS_SILENT = 1
+	</Condition>
+      </Component>
+      <Component Id='UnsetServiceOnly' Feature='Server' Guid='d0bb5749-e08a-40e1-9a68-618900b03450' Permanent='yes'>
+	<RemoveRegistryKey Root="HKLM" Key='Software\TightVNC\Server\ServiceOnly' Action="removeOnInstall">
+	</RemoveRegistryKey>
+        <Condition>
+        	NOT SERVICE_ONLY AND <![CDATA[IS_SILENT <> 1]]> OR
+	        <![CDATA[SERVER_SERVICE_ONLY <> 1]]> AND IS_SILENT = 1
+	</Condition>
+      </Component>
+
       <Component Id='AcceptHttpConnections_Property_Component' Feature='Server' Guid='76ba0ad7-ad68-4ef1-aa1b-15a38c9d37ec' Permanent='yes'>
         <RegistryValue Id='AcceptHttpConnections_RegValue' Action='write'
                        Root='HKLM' Key='Software\TightVNC\Server'
@@ -597,6 +641,81 @@
         <RemoveRegistryValue Id="PasswordViewOnly_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
                              Name="PasswordViewOnly" />
         <Condition> SET_VIEWONLYPASSWORD = -1 </Condition>
+      </Component>
+
+      <Component Id='IdleTimeout_Property_Component' Feature='Server' Guid='c72de19d-4b39-4693-ac75-b778dd9c46dd' Permanent='yes'>
+        <RegistryValue Id='IdleTimeout_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='IdleTimeout' Value='[VALUE_OF_IDLETIMEOUT]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_IDLETIMEOUT = 1 </Condition>
+      </Component>
+      <Component Id='IdleTimeout_Delete_Component' Feature='Server' Guid='{dc21499d-71d0-4c94-ab62-43e5baed50dd}' Permanent='yes'>
+        <RemoveRegistryValue Id="IdleTimeout_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="IdleTimeout" />
+        <Condition> SET_IDLETIMEOUT = -1 </Condition>
+      </Component>
+
+      <Component Id='ConnectRdp_Property_Component' Feature='Server' Guid='58cf7606-83c0-44a3-b7a7-3c11303c6215' Permanent='yes'>
+        <RegistryValue Id='ConnectToRdp_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='ConnectToRdp' Value='[VALUE_OF_CONNECTRDP]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_CONNECTRDP = 1 </Condition>
+      </Component>
+      <Component Id='ConnectRdp_Delete_Component' Feature='Server' Guid='{dff6beef-7c8a-4c52-a37d-d1ea35688759}' Permanent='yes'>
+        <RemoveRegistryValue Id="ConnectToRdp_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="ConnectToRdp" />
+        <Condition> SET_CONNECTRDP = -1 </Condition>
+      </Component>
+
+      <Component Id='VideoRecognitionInterval_Property_Component' Feature='Server' Guid='6d6cfda5-c18f-476c-9ce3-df3c66d685f8' Permanent='yes'>
+        <RegistryValue Id='VideoRecognitionInterval_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='VideoRecognitionInterval' Value='[VALUE_OF_VIDEORECOGNITIONINTERVAL]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_VIDEORECOGNITIONINTERVAL = 1 </Condition>
+      </Component>
+      <Component Id='VideoRecognitionInterval_Delete_Component' Feature='Server' Guid='{63e0a263-3689-4afc-89bb-fff23b5dd95c}' Permanent='yes'>
+        <RemoveRegistryValue Id="VideoRecognitionInterval_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="VideoRecognitionInterval" />
+        <Condition> SET_VIDEORECOGNITIONINTERVAL = -1 </Condition>
+      </Component>
+
+      <Component Id='VideoClasses_Property_Component' Feature='Server' Guid='09245b67-c12b-404c-8588-1c349c6a13cd' Permanent='yes'>
+        <RegistryValue Id='VideoClasses_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='VideoClasses' Value='[VALUE_OF_VIDEOCLASSES]' Type='string'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_VIDEOCLASSES = 1 </Condition>
+      </Component>
+      <Component Id='VideoClasses_Delete_Component' Feature='Server' Guid='{6cb258ed-0099-4bde-b0cf-dfd4a90a22c6}' Permanent='yes'>
+        <RemoveRegistryValue Id="VideoClasses_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="VideoClasses" />
+        <Condition> SET_VIDEOCLASSES = -1 </Condition>
+      </Component>
+
+      <Component Id='VideoRects_Property_Component' Feature='Server' Guid='6f5d1b12-06a2-4a79-8447-00e66d2a035f' Permanent='yes'>
+        <RegistryValue Id='VideoRects_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='VideoRects' Value='[VALUE_OF_VIDEORECTS]' Type='string'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_VIDEORECTS = 1 </Condition>
+      </Component>
+      <Component Id='VideoRects_Delete_Component' Feature='Server' Guid='{35ac612a-742c-406c-90cc-9a2471c54843}' Permanent='yes'>
+        <RemoveRegistryValue Id="VideoRects_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="VideoRects" />
+        <Condition> SET_VIDEORECTS = -1 </Condition>
       </Component>
   <?endif?>
 

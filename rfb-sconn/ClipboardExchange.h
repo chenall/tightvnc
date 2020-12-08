@@ -43,12 +43,14 @@ public:
 protected:
   // Listen function
   virtual void onRequest(UINT32 reqCode, RfbInputGate *input);
-
   virtual void execute();
   virtual void onTerminate();
 
 private:
+  void onRequestWorker(bool utf8data, RfbInputGate *input);
+
   bool m_viewOnly;
+  bool m_isUtf8ClipboardEnabled;
   Desktop *m_desktop;
   RfbOutputGate *m_output;
 

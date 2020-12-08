@@ -100,7 +100,7 @@ int QueryConnectionApplication::execute(const TCHAR *peerAddr, bool acceptByDefa
   // Run command in separate process.
 
   if (Configurator::getInstance()->getServiceFlag()) {
-    process = new CurrentConsoleProcess(&log, command.getString());
+    process = new CurrentConsoleProcess(&log, false, command.getString());
   } else {
     process = new Process(command.getString());
   }

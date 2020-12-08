@@ -278,6 +278,9 @@ public:
   bool getShowTrayIconFlag();
   void setShowTrayIconFlag(bool val);
 
+  bool getConnectToRdpFlag();
+  void setConnectToRdpFlag(bool val);
+
   void getLogFileDir(StringStorage *logFileDir);
   void setLogFileDir(const TCHAR *logFileDir);
 
@@ -410,6 +413,8 @@ protected:
   bool m_saveLogToAllUsersPath;
   // Run control interface with TightVNC server or not.
   bool m_showTrayIcon;
+  // Connect to existing RDP session or drop it.
+  bool m_connectToRdp;
 
   StringStorage m_logFilePath;
 private:

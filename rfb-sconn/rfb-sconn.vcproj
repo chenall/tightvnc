@@ -545,6 +545,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\EchoExtensionRequestHandler.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\EncodeOptions.cpp"
 				>
 			</File>
@@ -632,6 +636,10 @@
 			</File>
 			<File
 				RelativePath=".\ClipboardExchange.h"
+				>
+			</File>
+			<File
+				RelativePath=".\EchoExtensionRequestHandler.h"
 				>
 			</File>
 			<File

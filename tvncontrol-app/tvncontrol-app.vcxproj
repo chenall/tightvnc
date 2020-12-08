@@ -272,9 +272,7 @@
     <ClCompile Include="ControlProxy.cpp" />
     <ClCompile Include="ControlTrayIcon.cpp" />
     <ClCompile Include="DisconnectAllCommand.cpp" />
-    <ClCompile Include="DispatchCommand.cpp" />
     <ClCompile Include="MakeRfbConnectionCommand.cpp" />
-    <ClCompile Include="MakeTcpDispatcherConnCommand.cpp" />
     <ClCompile Include="NamedPipeTransport.cpp" />
     <ClCompile Include="Notificator.cpp" />
     <ClCompile Include="OutgoingConnectionDialog.cpp" />
@@ -290,7 +288,6 @@
     <ClCompile Include="ShareWindowCommand.cpp" />
     <ClCompile Include="ShutdownCommand.cpp" />
     <ClCompile Include="SocketIPv4Transport.cpp" />
-    <ClCompile Include="TcpDispatcherConnectionDialog.cpp" />
     <ClCompile Include="Transport.cpp" />
     <ClCompile Include="TransportFactory.cpp" />
     <ClCompile Include="UpdateLocalConfigCommand.cpp" />
@@ -313,9 +310,7 @@
     <ClInclude Include="ControlProxy.h" />
     <ClInclude Include="ControlTrayIcon.h" />
     <ClInclude Include="DisconnectAllCommand.h" />
-    <ClInclude Include="DispatchCommand.h" />
     <ClInclude Include="MakeRfbConnectionCommand.h" />
-    <ClInclude Include="MakeTcpDispatcherConnCommand.h" />
     <ClInclude Include="NamedPipeTransport.h" />
     <ClInclude Include="Notificator.h" />
     <ClInclude Include="OutgoingConnectionDialog.h" />
@@ -331,7 +326,6 @@
     <ClInclude Include="ShareWindowCommand.h" />
     <ClInclude Include="ShutdownCommand.h" />
     <ClInclude Include="SocketIPv4Transport.h" />
-    <ClInclude Include="TcpDispatcherConnectionDialog.h" />
     <ClInclude Include="Transport.h" />
     <ClInclude Include="TransportFactory.h" />
     <ClInclude Include="TvnServerInfo.h" />

@@ -34,6 +34,7 @@ DynamicLibrary *WTS::m_wtsapi32Library = 0;
 pWTSGetActiveConsoleSessionId WTS::m_WTSGetActiveConsoleSessionId = 0;
 pWTSQueryUserToken WTS::m_WTSQueryUserToken = 0;
 pWTSQuerySessionInformation WTS::m_WTSQuerySessionInformation = 0;
+pWTSEnumerateSessions WTS::m_WTSEnumerateSessions = 0;
 pWTSFreeMemory WTS::m_WTSFreeMemory = 0;
 
 volatile bool WTS::m_initialized = false;
@@ -55,6 +56,37 @@ DWORD WTS::getActiveConsoleSessionId(LogWriter *log)
   }
 
   return m_WTSGetActiveConsoleSessionId();
+}
+
+DWORD WTS::getRdpSessionId(LogWriter *log)
+{
+  AutoLock l(&m_mutex);
+
+  if (!m_initialized) {
+    initialize(log);
+  }
+
+  if (m_WTSEnumerateSessions == 0) {
+    return 0;
+  }
+  
+  PWTS_SESSION_INFO sessionInfo = 0;
+  DWORD count = 0;
+  DWORD sessionId = 0;
+
+  if (m_WTSEnumerateSessions(WTS_CURRENT_SERVER_HANDLE, 0, 1, &sessionInfo, &count)) {
+    for (DWORD i = 0; i < count; i++) {
+      if (sessionInfo[i].State == WTSActive) {
+        StringStorage sessionName(sessionInfo[i].pWinStationName);
+        sessionName.toLowerCase();
+        if (sessionName.find(_T("rdp")) != 0) {
+          sessionId = (DWORD)sessionInfo[i].SessionId;
+        }
+      }
+    }
+    wtsFreeMemory(sessionInfo);
+  }
+  return sessionId;
 }
 
 void WTS::queryConsoleUserToken(HANDLE *token, LogWriter *log) throw(SystemException)
@@ -199,8 +231,10 @@ void WTS::initialize(LogWriter *log)
     m_WTSQueryUserToken = (pWTSQueryUserToken)m_wtsapi32Library->getProcAddress("WTSQueryUserToken");
 #ifdef UNICODE
     m_WTSQuerySessionInformation = (pWTSQuerySessionInformation)m_wtsapi32Library->getProcAddress("WTSQuerySessionInformationW");
+    m_WTSEnumerateSessions = (pWTSEnumerateSessions)m_wtsapi32Library->getProcAddress("WTSEnumerateSessionsW");
 #else
     m_WTSQuerySessionInformation = (pWTSQuerySessionInformation)m_wtsapi32Library->getProcAddress("WTSQuerySessionInformationA");
+    m_WTSEnumerateSessions = (pWTSEnumerateSessions)m_wtsapi32Library->getProcAddress("WTSEnumerateSessionsA");
 #endif
     m_WTSFreeMemory = (pWTSFreeMemory)m_wtsapi32Library->getProcAddress("WTSFreeMemory");
   } catch (Exception &e) {

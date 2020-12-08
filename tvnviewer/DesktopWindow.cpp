@@ -248,6 +248,15 @@ bool DesktopWindow::onKey(WPARAM wParam, LPARAM lParam)
     static const unsigned int DOWN_FLAG = 0x80000000;
     bool isDown = (additionalInfo & DOWN_FLAG) == 0;
 
+    if (virtualKey == VK_PROCESSKEY) {
+      bool extended = HIWORD(lParam) & KF_EXTENDED;
+      UINT scancode = HIWORD(lParam) & 0xFF;
+      if (extended) {
+        scancode += 0xE000;
+      }
+      virtualKey = MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX);
+    }
+
     if (virtualKey == VK_CONTROL) {
       m_ctrlDown = isDown;
     }

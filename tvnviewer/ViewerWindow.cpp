@@ -395,8 +395,10 @@ void ViewerWindow::dialogConnectionInfo()
 void ViewerWindow::switchFullScreenMode()
 {
   if (m_isFullScr) {
+    m_logWriter.debug(_T("Switch to windowed mode"));
     doUnFullScr();
   } else {
+    m_logWriter.debug(_T("Switch to full screen mode"));
     doFullScr();
   }
 }
@@ -487,11 +489,13 @@ void ViewerWindow::commandPause()
 void ViewerWindow::commandToolBar()
 {
   if (m_toolbar.isVisible()) {
+    m_logWriter.debug(_T("Hide toolbar"));
     m_menu.checkedMenuItem(IDS_TB_TOOLBAR, false);
     m_toolbar.hide();
     doSize();
   } else {
     if (!m_isFullScr) {
+      m_logWriter.debug(_T("Show toolbar"));
       m_menu.checkedMenuItem(IDS_TB_TOOLBAR, true);
       m_toolbar.show();
       doSize();
@@ -671,6 +675,7 @@ int ViewerWindow::translateAccelToTB(int val)
 
   for (int i = 0; i < sizeof(accelerators) / sizeof(std::pair<int, int>); i++) {
     if (accelerators[i].first == val) {
+      m_logWriter.debug(_T("accelerator pressed: %d"), val);
       return accelerators[i].second;
     }
   }

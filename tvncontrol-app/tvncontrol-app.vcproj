@@ -593,15 +593,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\DispatchCommand.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\MakeRfbConnectionCommand.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\MakeTcpDispatcherConnCommand.cpp"
 				>
 			</File>
 			<File
@@ -662,10 +654,6 @@
 			</File>
 			<File
 				RelativePath=".\SocketIPv4Transport.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\TcpDispatcherConnectionDialog.cpp"
 				>
 			</File>
 			<File
@@ -755,15 +743,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\DispatchCommand.h"
-				>
-			</File>
-			<File
 				RelativePath=".\MakeRfbConnectionCommand.h"
-				>
-			</File>
-			<File
-				RelativePath=".\MakeTcpDispatcherConnCommand.h"
 				>
 			</File>
 			<File
@@ -824,10 +804,6 @@
 			</File>
 			<File
 				RelativePath=".\SocketIPv4Transport.h"
-				>
-			</File>
-			<File
-				RelativePath=".\TcpDispatcherConnectionDialog.h"
 				>
 			</File>
 			<File

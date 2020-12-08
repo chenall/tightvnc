@@ -132,6 +132,30 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseNoUnicode|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseNoUnicode|x64'">$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\um</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugNoUnicode|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\um</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\um</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoUnicode|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\um</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\um</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugNoUnicode|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\um</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\um</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseNoUnicode|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSdkDir_81)Include\shared;$(WindowsSdkDir_81)Include\um</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -315,7 +339,6 @@
   <ItemGroup>
     <ClCompile Include="AdditionalActionApplication.cpp" />
     <ClCompile Include="AuthTracker.cpp" />
-    <ClCompile Include="ConnectToTcpDispatcherThread.cpp" />
     <ClCompile Include="ControlAppAuthenticator.cpp" />
     <ClCompile Include="ControlClient.cpp" />
     <ClCompile Include="ControlServer.cpp" />
@@ -346,7 +369,6 @@
   <ItemGroup>
     <ClInclude Include="AdditionalActionApplication.h" />
     <ClInclude Include="AuthTracker.h" />
-    <ClInclude Include="ConnectToTcpDispatcherThread.h" />
     <ClInclude Include="ControlAppAuthenticator.h" />
     <ClInclude Include="ControlClient.h" />
     <ClInclude Include="ControlServer.h" />

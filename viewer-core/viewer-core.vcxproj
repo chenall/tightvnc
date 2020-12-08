@@ -242,7 +242,6 @@
     <ClCompile Include="CoreEventsAdapter.cpp" />
     <ClCompile Include="CursorPainter.cpp" />
     <ClCompile Include="DecoderOfRectangle.cpp" />
-    <ClCompile Include="DispatchIdProvider.cpp" />
     <ClCompile Include="FbUpdateNotifier.cpp" />
     <ClCompile Include="FileTransferCapability.cpp" />
     <ClCompile Include="LastRectDecoder.cpp" />
@@ -282,8 +281,6 @@
     <ClInclude Include="CoreEventsAdapter.h" />
     <ClInclude Include="CursorPainter.h" />
     <ClInclude Include="DecoderOfRectangle.h" />
-    <ClInclude Include="DispatchDataProvider.h" />
-    <ClInclude Include="DispatchIdProvider.h" />
     <ClInclude Include="FbUpdateNotifier.h" />
     <ClInclude Include="FileTransferCapability.h" />
     <ClInclude Include="LastRectDecoder.h" />

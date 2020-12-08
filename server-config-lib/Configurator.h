@@ -26,6 +26,7 @@
 #define _CONFIGURATOR_H_
 
 #include "config-lib/SettingsManager.h"
+#include "config-lib/IniFileSettingsManager.h"
 
 #include "PortMappingContainer.h"
 #include "IpAccessControl.h"
@@ -104,6 +105,7 @@ protected:
   //
 
   ServerConfig m_serverConfig;
+  TCHAR ConfigFile[MAX_PATH + 1];
 
   //
   // Is this flag is set configurator think than application run as service

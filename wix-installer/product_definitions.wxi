@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Include>
+  <?define ProductNameStub='TightVNC' ?>
+  <?define Language='1033' ?>
+  <?define Codepage='1252' ?>
+  <?define StartProductVersion='2.0.0' ?> <!-- Earlest version that can be upgraded by this installer -->
+  <!-- WARNING! If Version number increase is forget in a release
+       then the installer will
+       install the TightVNC product parallelly with the same version and
+       the same name -->
+  <?ifndef SERVER_FREE ?>
+    <?define Version='!(bind.FileVersion.tvnserverEXE)' ?>
+  <?else?>
+    <?ifndef VIEWER_FREE ?>
+      <?define Version='!(bind.FileVersion.viewerEXE)' ?>
+    <?endif?>
+  <?endif?>
+  <?define Manufacturer='GlavSoft LLC.' ?>
+
+  <?define SrcFolder = "..\" ?>
+
+  <!-- This name must be synchronized to the source code name -->
+  <?define AllUsersProgramDataFolderName = "$(var.ProductNameStub)"?>
+
+  <?define UpgradeCode='B1F272B0-5B47-46f0-9AF2-705E64EB1A69' ?>
+  <?define ProductName = "$(var.ProductNameStub)" ?>
+  
+  <?if $(var.Platform) = x64 ?>
+    <?define ProductId = '*' ?>
+    <?define Win64 = "yes" ?>
+    <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
+    <?define BinFolder = "$(var.SrcFolder)\x64\Release" ?>
+    <?define AddonBinFolder = "files64" ?>
+  <?else ?>
+    <?define ProductId = '*' ?>
+    <?define Win64 = "no" ?>
+    <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
+    <?define BinFolder = "$(var.SrcFolder)\Release" ?>
+    <?define AddonBinFolder = "files32" ?>
+  <?endif ?>
+</Include>

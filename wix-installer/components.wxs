@@ -1,0 +1,208 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:fire="http://schemas.microsoft.com/wix/FirewallExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  <Fragment>
+    <?include product_definitions.wxi?>
+
+    <DirectoryRef Id="INSTALLDIR" DiskId="1">
+      <!-- tvnserver with shortcuts -->
+      <?ifndef SERVER_FREE ?>
+      <Component Id='ServerExe' Guid='F8F36CD1-9EE3-4911-8CA1-8B0B6BB34175'>
+        <ServiceControl Id="ServiceRemover"
+                        Name="tvnserver"
+                        Remove="uninstall"
+                        Stop="uninstall"
+                        Wait="yes" />
+        <!-- tvnserver.exe -->
+        <File Id='tvnserverEXE' Name='tvnserver.exe' DiskId='1' Source='$(var.BinFolder)\tvnserver.exe' KeyPath='yes'>
+        </File>
+        <!-- screenhooks -->
+        <File Id='screenHooksFile' Name='screenhooks32.dll' DiskId='1' Source='$(var.SrcFolder)\Release\screenhooks32.dll'/>
+        <?if $(var.Platform) = x64 ?>
+          <File Id='screenHooksFile64' Name='screenhooks64.dll' DiskId='1' Source='$(var.BinFolder)\screenhooks64.dll'/>
+          <File Id='screenHooksLoader' Name='hookldr.exe' DiskId='1' Source='$(var.SrcFolder)\Release\hookldr.exe'/>
+        <?endif ?>
+      </Component>
+      <!--
+      <Component Id='ServiceUnregister' Guid='{7EA20DAD-06A8-402f-A67D-0B0AB2E5356B}' Feature='Server'>
+      </Component>-->
+
+
+      <!-- sas.dll -->
+      <Component Id='SasDll' Guid='{007C2EC4-AF03-495e-8A1C-784DBC84929D}'>
+        <File Id='sasDllFile' Name='sas.dll' DiskId='1' Source='$(var.AddonBinFolder)\sas.dll' KeyPath='yes'/>
+        <Condition> VersionNT = 600 </Condition>
+      </Component>
+      <?endif ?>
+
+      <Component Id='UrlComponent' Guid='{9282ED3F-A2F7-4727-909B-02614DEA23EA}'>
+        <File Id='UrlFile' Name='TightVNC Web Site.url' Source='TightVNC Web Site.url'
+              KeyPath='yes'>
+        </File>
+      </Component>
+
+      <?ifndef VIEWER_FREE ?>
+      <Component Id='ViewerExe' Guid='{7E013E9C-D95F-4381-AEDB-FAD5B182AC1A}'>
+        <File Id='viewerEXE' Name='tvnviewer.exe' DiskId='1' Source='$(var.BinFolder)\tvnviewer.exe' KeyPath='yes'>
+        </File>
+      </Component>
+      <?endif?>
+
+      <Component Id='LicenseFileComponent' Guid='{66D70E32-FE2B-49ca-A64C-3CCDC7A7BF95}'>
+        <File Id='LicenseFile' Name='LICENSE.txt' Source='LICENSE.txt'
+              KeyPath='yes'>
+        </File>
+      </Component>
+    </DirectoryRef>
+
+    <DirectoryRef Id="TARGETDIR" DiskId="1">
+      <!--Viewer file associations -->
+      <?ifndef VIEWER_FREE ?>
+      <Component Id='ViewerFileAssoc' Guid='{81F67CF9-F947-47e7-901A-B04DA8405323}'>
+        <RegistryValue Id='vncAssoc1' Root='HKCR' Key='.vnc' Action='write' Type='string' Value='VncViewer.Config'/>
+        <RegistryValue Id='vncAssoc2' Root='HKCR' Key='VncViewer.Config' Action='write' Type='string' Value='VNCviewer Config File' />
+        <RegistryValue Id='vncAssoc3' Root='HKCR' Key='VncViewer.Config\DefaultIcon' Action='write' Type='string' Value='[INSTALLDIR]tvnviewer.exe,0' />
+        <RegistryValue Id='vncAssoc4' Root='HKCR' Key='VncViewer.Config\shell\open\command' Action='write' Type='string' Value='"[INSTALLDIR]tvnviewer.exe" -optionsfile="%1"' />
+        <Condition>
+          (ASSOCIATE_VNC_EXTENSION = 1 AND <![CDATA[IS_SILENT <> 1]]> OR
+          VIEWER_ASSOCIATE_VNC_EXTENSION = 1 AND IS_SILENT = 1)
+        </Condition>
+      </Component>
+      <?endif?>
+      <!-- Firewall exception -->
+      <!-- Server firewall exception -->
+      <?ifndef SERVER_FREE ?>
+      <Component Id="tvnserverFirewallException" Guid='{F4560702-BA2E-4498-A6F2-92FF9C109962}'>
+        <fire:FirewallException Id="FWX1" Name="$(var.ProductName)" File="tvnserverEXE" Scope="any"
+                                IgnoreFailure="yes"/>
+        <Condition>
+          (ADD_FIREWALL_EXCEPTION = 1 AND <![CDATA[IS_SILENT <> 1]]> OR
+          SERVER_ADD_FIREWALL_EXCEPTION = 1 AND IS_SILENT = 1)
+        </Condition>
+      </Component>
+      <?endif?>
+      <!-- Viewer firewall exception -->
+      <?ifndef VIEWER_FREE ?>
+      <Component Id="TvnviewerFirewallException" Guid='{38F67337-C5C3-4616-9327-713B8A18C430}'>
+        <fire:FirewallException Id="FWX2" Name="$(var.ProductName)" File="viewerEXE" Scope="any"
+                                IgnoreFailure="yes"/>
+        <Condition>
+          (ADD_FIREWALL_EXCEPTION = 1 AND <![CDATA[IS_SILENT <> 1]]> OR
+          VIEWER_ADD_FIREWALL_EXCEPTION = 1 AND IS_SILENT = 1)
+        </Condition>
+      </Component>
+      <?endif?>
+    </DirectoryRef>
+
+    <DirectoryRef Id="ProgramMenuDir" DiskId="1">
+      <Component Id="ProgramMenuDir" Guid="CE57B8CF-448C-48c4-ADBA-171079F714C9">
+        <Shortcut Id="UrlShortcut"
+          Target ="[#UrlFile]"
+          Directory="ProgramMenuDir"
+          Name="Visit TightVNC Web Site"
+          WorkingDirectory='INSTALLDIR'/>
+        <Shortcut Id="startmenuViewer"
+          Target ="[#viewerEXE]"
+          Directory="ProgramMenuDir"
+          Name="TightVNC Viewer"
+          WorkingDirectory='INSTALLDIR'
+          Icon='viewer.ico'
+          IconIndex="0"/>
+        <RemoveFolder Id='ProgramMenuDir' On='uninstall' />
+        <RegistryValue Root='HKCU' Key='Software\[Manufacturer]\[ProductName]1' Type='string' Value='' KeyPath='yes' />
+      </Component>
+    </DirectoryRef>
+    <?ifndef SERVER_FREE ?>
+    <DirectoryRef Id="ServerMenuDir" DiskId="1">
+      <Component Id="ServerMenuDir" Guid="{FE06A99B-0809-4199-9759-E55AF044F537}">
+        <Shortcut Id="menuTvnServerApp"
+                  Target ="[#tvnserverEXE]"
+                  Directory="ServerMenuDir"
+                  Name="Run TightVNC Server"
+                  WorkingDirectory='INSTALLDIR'
+                  Icon='tvnserver.ico'
+                  IconIndex="0"/>
+        <Shortcut Id="menuTvnControlApp"
+                  Target ="[#tvnserverEXE]"
+                  Arguments="-controlapp"
+                  Directory="ServerMenuDir"
+                  Name="TightVNC Server - Control Interface"
+                  WorkingDirectory='INSTALLDIR'
+                  Icon='tvnserver.ico'
+                  IconIndex="0"/>
+        <Shortcut Id="menuTvnOfflineControlApp"
+                  Target ="[#tvnserverEXE]"
+                  Arguments="-configapp"
+                  Directory="ServerMenuDir"
+                  Name="TightVNC Server - Offline Configuration"
+                  WorkingDirectory='INSTALLDIR'
+                  Icon='tvnserver.ico'
+                  IconIndex="0"/>
+        <RemoveFolder Id='ServerMenuDir' On='uninstall' />
+        <RegistryValue Root='HKCU' Key='Software\[Manufacturer]\[ProductName]2' Type='string' Value='' KeyPath='yes' />
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="ServiceMenuDir" DiskId="1">
+      <Component Id="ServiceMenuDir" Guid="{1B4D5796-39DB-4189-BD0C-9BBF49B1D9C6}">
+        <Shortcut Id="menuRegisterTvnService"
+                  Target ="[#tvnserverEXE]"
+                  Arguments="-install"
+                  Name="Register TightVNC Service"
+                  WorkingDirectory='INSTALLDIR'
+                  Icon='tvnserver.ico'
+                  IconIndex="0"/>
+        <Shortcut Id="menuStartTvnService"
+                  Target ="[#tvnserverEXE]"
+                  Arguments="-start"
+                  Name="Start TightVNC Service"
+                  WorkingDirectory='INSTALLDIR'
+                  Icon='tvnserver.ico'
+                  IconIndex="0"/>
+        <Shortcut Id="menuStopTvnService"
+                  Target ="[#tvnserverEXE]"
+                  Arguments="-stop"
+                  Name="Stop TightVNC Service"
+                  WorkingDirectory='INSTALLDIR'
+                  Icon='tvnserver.ico'
+                  IconIndex="0"/>
+        <Shortcut Id="menuTvnControlService"
+                  Target ="[#tvnserverEXE]"
+                  Arguments="-controlservice"
+                  Name="TightVNC Service - Control Interface"
+                  WorkingDirectory='INSTALLDIR'
+                  Icon='tvnserver.ico'
+                  IconIndex="0"/>
+        <Shortcut Id="menuTvnOfflineControlService"
+                  Target ="[#tvnserverEXE]"
+                  Arguments="-configservice"
+                  Name="TightVNC Service - Offline Configuration"
+                  WorkingDirectory='INSTALLDIR'
+                  Icon='tvnserver.ico'
+                  IconIndex="0"/>
+        <Shortcut Id="menuUnregisterTvnService"
+                  Target ="[#tvnserverEXE]"
+                  Arguments="-remove"
+                  Name="Unregister TightVNC Service"
+                  WorkingDirectory='INSTALLDIR'
+                  Icon='tvnserver.ico'
+                  IconIndex="0"/>
+        <RemoveFolder Id='ServiceMenuDir' On='uninstall' />
+        <RegistryValue Root='HKCU' Key='Software\[Manufacturer]\[ProductName]3' Type='string' Value='' KeyPath='yes' />
+      </Component>
+    </DirectoryRef>
+    <?endif?>
+
+    <!-- Changing permissions of the Tight Log folder that
+         should be shared for all users on the tight application mode -->
+    <DirectoryRef Id="TightProgramDataFolder" DiskId="1">
+      <Component Id="LogFolderPermissions"
+                 Guid="{2A6BC588-10EB-4d3a-A993-908E552D40E4}">
+        <CreateFolder>
+          <util:PermissionEx User="Everyone" GenericAll="yes" ChangePermission="yes"/>
+        </CreateFolder>
+      </Component>
+    </DirectoryRef>
+
+  </Fragment>
+</Wix>

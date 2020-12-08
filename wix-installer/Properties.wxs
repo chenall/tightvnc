@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <!-- Properties that compete with the UI properties. If UI disabled
+    (a silent mode) installer will use this properties else will use
+    UI properties -->
+    <Property Id='VIEWER_ASSOCIATE_VNC_EXTENSION' Secure='yes'> 1 </Property>
+    <Property Id="SERVER_REGISTER_AS_SERVICE" Secure='yes'> 1 </Property>
+    <Property Id="SERVER_ADD_FIREWALL_EXCEPTION" Secure='yes'> 1 </Property>
+    <Property Id="VIEWER_ADD_FIREWALL_EXCEPTION" Secure='yes'> 1 </Property>
+    <Property Id='SERVER_ALLOW_SAS' Secure='yes'> 1 </Property>
+
+    <!-- The server's optional properties that may be turn on from out -->
+    <Property Id='SET_ACCEPTHTTPCONNECTIONS'> 0 </Property>
+    <Property Id='VALUE_OF_ACCEPTHTTPCONNECTIONS'> 1 </Property>
+
+    <Property Id='SET_ACCEPTRFBCONNECTIONS'> 0 </Property>
+    <Property Id='VALUE_OF_ACCEPTRFBCONNECTIONS'> 1 </Property>
+
+    <Property Id='SET_ALLOWLOOPBACK'> 0 </Property>
+    <Property Id='VALUE_OF_ALLOWLOOPBACK'> 0 </Property>
+
+    <Property Id='SET_ALWAYSSHARED'> 0 </Property>
+    <Property Id='VALUE_OF_ALWAYSSHARED'> 0 </Property>
+
+    <Property Id='SET_BLOCKLOCALINPUT'> 0 </Property>
+    <Property Id='VALUE_OF_BLOCKLOCALINPUT'> 0 </Property>
+
+    <Property Id='SET_BLOCKREMOTEINPUT'> 0 </Property>
+    <Property Id='VALUE_OF_BLOCKREMOTEINPUT'> 0 </Property>
+
+    <Property Id='SET_DISCONNECTACTION'> 0 </Property>
+    <Property Id='VALUE_OF_DISCONNECTACTION'> 0 </Property>
+
+    <Property Id='SET_DISCONNECTCLIENTS'> 0 </Property>
+    <Property Id='VALUE_OF_DISCONNECTCLIENTS'> 1 </Property>
+
+    <Property Id='SET_ENABLEFILETRANSFERS'> 0 </Property>
+    <Property Id='VALUE_OF_ENABLEFILETRANSFERS'> 1 </Property>
+
+    <Property Id='SET_ENABLEURLPARAMS'> 0 </Property>
+    <Property Id='VALUE_OF_ENABLEURLPARAMS'> 1 </Property>
+
+    <Property Id='SET_EXTRAPORTS'> 0 </Property>
+    <Property Id='VALUE_OF_EXTRAPORTS'> 5901:640x480+0+0 </Property>
+
+    <Property Id='SET_GRABTRANSPARENTWINDOWS'> 0 </Property>
+    <Property Id='VALUE_OF_GRABTRANSPARENTWINDOWS'> 1 </Property>
+
+    <Property Id='SET_HTTPPORT'> 0 </Property>
+    <Property Id='VALUE_OF_HTTPPORT'> 5800 </Property>
+
+    <Property Id='SET_IPACCESSCONTROL'> 0 </Property>
+    <Property Id='VALUE_OF_IPACCESSCONTROL' Secure='yes'> </Property>
+
+    <Property Id='SET_LOCALINPUTPRIORITY'> 0 </Property>
+    <Property Id='VALUE_OF_LOCALINPUTPRIORITY'> 0 </Property>
+
+    <Property Id='SET_LOCALINPUTPRIORITYTIMEOUT'> 0 </Property>
+    <Property Id='VALUE_OF_LOCALINPUTPRIORITYTIMEOUT'> 3 </Property>
+
+    <Property Id='SET_LOGLEVEL'> 0 </Property>
+    <Property Id='VALUE_OF_LOGLEVEL'> 0 </Property>
+
+    <Property Id='SET_LOOPBACKONLY'> 0 </Property>
+    <Property Id='VALUE_OF_LOOPBACKONLY'> 0 </Property>
+
+    <Property Id='SET_NEVERSHARED'> 0 </Property>
+    <Property Id='VALUE_OF_NEVERSHARED'> 0 </Property>
+
+    <Property Id='SET_POLLINGINTERVAL'> 0 </Property>
+    <Property Id='VALUE_OF_POLLINGINTERVAL'> 1000 </Property>
+
+    <Property Id='SET_QUERYACCEPTONTIMEOUT'> 0 </Property>
+    <Property Id='VALUE_OF_QUERYACCEPTONTIMEOUT'> 0 </Property>
+
+    <Property Id='SET_QUERYTIMEOUT'> 0 </Property>
+    <Property Id='VALUE_OF_QUERYTIMEOUT'> 30 </Property>
+
+    <Property Id='SET_REMOVEWALLPAPER'> 0 </Property>
+    <Property Id='VALUE_OF_REMOVEWALLPAPER'> 1 </Property>
+
+    <Property Id='SET_RFBPORT'> 0 </Property>
+    <Property Id='VALUE_OF_RFBPORT'> 5900 </Property>
+
+    <Property Id='SET_RUNCONTROLINTERFACE'> 0 </Property>
+    <Property Id='VALUE_OF_RUNCONTROLINTERFACE'> 1 </Property>
+
+    <Property Id='SET_SAVELOGTOALLUSERSPATH'> 0 </Property>
+    <Property Id='VALUE_OF_SAVELOGTOALLUSERSPATH'> 0 </Property>
+
+    <Property Id='SET_USED3D'> 0 </Property>
+    <Property Id='VALUE_OF_USED3D'> 1 </Property>
+
+    <Property Id='SET_USEMIRRORDRIVER'> 0 </Property>
+    <Property Id='VALUE_OF_USEMIRRORDRIVER'> 1 </Property>
+
+    <Property Id='SET_USECONTROLAUTHENTICATION'> 0 </Property>
+    <Property Id='VALUE_OF_USECONTROLAUTHENTICATION'> 0 </Property>
+
+    <Property Id='SET_REPEATCONTROLAUTHENTICATION'> 0 </Property>
+    <Property Id='VALUE_OF_REPEATCONTROLAUTHENTICATION'> 0 </Property>
+
+    <Property Id='SET_CONTROLPASSWORD' Secure='yes'> 0 </Property>
+    <Property Id='VALUE_OF_CONTROLPASSWORD' Secure='yes'> </Property>
+
+    <Property Id='SET_USEVNCAUTHENTICATION'> 0 </Property>
+    <Property Id='VALUE_OF_USEVNCAUTHENTICATION'> 1 </Property>
+
+    <Property Id='SET_PASSWORD' Secure='yes'> 0 </Property>
+    <Property Id='VALUE_OF_PASSWORD' Secure='yes'> </Property>
+
+    <Property Id='SET_VIEWONLYPASSWORD' Secure='yes'> 0 </Property>
+    <Property Id='VALUE_OF_VIEWONLYPASSWORD' Secure='yes'> </Property>
+
+    <!-- Components to install above properties -->
+    <DirectoryRef Id="TARGETDIR" DiskId="1">
+  <?ifndef SERVER_FREE ?>
+      <Component Id='AcceptHttpConnections_Property_Component' Feature='Server' Guid='76ba0ad7-ad68-4ef1-aa1b-15a38c9d37ec' Permanent='yes'>
+        <RegistryValue Id='AcceptHttpConnections_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='AcceptHttpConnections' Value='[VALUE_OF_ACCEPTHTTPCONNECTIONS]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_ACCEPTHTTPCONNECTIONS = 1 </Condition>
+      </Component>
+      <Component Id='AcceptHttpConnections_Delete_Component' Feature='Server' Guid='{67B1F977-A6BA-4c38-8626-799C29299A2A}' Permanent='yes'>
+        <RemoveRegistryValue Id="Remove_AcceptHttpConnections_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="AcceptHttpConnections" />
+        <Condition> SET_ACCEPTHTTPCONNECTIONS = -1 </Condition>
+      </Component>
+
+      <Component Id='AcceptRfbConnections_Property_Component' Feature='Server' Guid='a7a60f2a-9014-4ee3-9471-689b2bfcfa14' Permanent='yes'>
+        <RegistryValue Id='AcceptRfbConnections_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='AcceptRfbConnections' Value='[VALUE_OF_ACCEPTRFBCONNECTIONS]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_ACCEPTRFBCONNECTIONS = 1 </Condition>
+      </Component>
+      <Component Id='AcceptRfbConnections_Delete_Component' Feature='Server' Guid='{8374285A-2F4B-477a-9827-5760EC697446}' Permanent='yes'>
+        <RemoveRegistryValue Id="AcceptRfbConnections_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="AcceptRfbConnections" />
+        <Condition> SET_ACCEPTRFBCONNECTIONS = -1 </Condition>
+      </Component>
+
+      <Component Id='AllowLoopback_Property_Component' Feature='Server' Guid='1f6315bf-f7ca-4861-8413-573a6005332f' Permanent='yes'>
+        <RegistryValue Id='AllowLoopback_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='AllowLoopback' Value='[VALUE_OF_ALLOWLOOPBACK]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_ALLOWLOOPBACK = 1 </Condition>
+      </Component>
+      <Component Id='AllowLoopback_Delete_Component' Feature='Server' Guid='{5EB4CE05-3D9E-4a63-8585-951A1021F0DC}' Permanent='yes'>
+        <RemoveRegistryValue Id="AllowLoopback_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="AllowLoopback" />
+        <Condition> SET_ALLOWLOOPBACK = -1 </Condition>
+      </Component>
+
+      <Component Id='AlwaysShared_Property_Component' Feature='Server' Guid='88e2e66b-d8b6-4222-b5ff-d9878c2ada79' Permanent='yes'>
+        <RegistryValue Id='AlwaysShared_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='AlwaysShared' Value='[VALUE_OF_ALWAYSSHARED]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_ALWAYSSHARED = 1 </Condition>
+      </Component>
+      <Component Id='AlwaysShared_Delete_Component' Feature='Server' Guid='{77D8A079-8DCF-453b-A144-DE417450F482}' Permanent='yes'>
+        <RemoveRegistryValue Id="AlwaysShared_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="AlwaysShared" />
+        <Condition> SET_ALWAYSSHARED = -1 </Condition>
+      </Component>
+
+      <Component Id='BlockLocalInput_Property_Component' Feature='Server' Guid='23c63586-ce00-4234-afca-187de32d0d42' Permanent='yes'>
+        <RegistryValue Id='BlockLocalInput_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='BlockLocalInput' Value='[VALUE_OF_BLOCKLOCALINPUT]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_BLOCKLOCALINPUT = 1 </Condition>
+      </Component>
+      <Component Id='BlockLocalInput_Delete_Component' Feature='Server' Guid='{EE72D78A-FAFD-4869-A8B1-0E1501872DC5}' Permanent='yes'>
+        <RemoveRegistryValue Id="BlockLocalInput_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="BlockLocalInput" />
+        <Condition> SET_BLOCKLOCALINPUT = -1 </Condition>
+      </Component>
+
+      <Component Id='BlockRemoteInput_Property_Component' Feature='Server' Guid='7d4e3d6a-f9bc-49af-8ceb-826c844b12be' Permanent='yes'>
+        <RegistryValue Id='BlockRemoteInput_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='BlockRemoteInput' Value='[VALUE_OF_BLOCKREMOTEINPUT]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_BLOCKREMOTEINPUT = 1 </Condition>
+      </Component>
+      <Component Id='BlockRemoteInput_Delete_Component' Feature='Server' Guid='{3712B9CA-6CA7-43e4-A26C-C952BF51BA4F}' Permanent='yes'>
+        <RemoveRegistryValue Id="BlockRemoteInput_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="BlockRemoteInput" />
+        <Condition> SET_BLOCKREMOTEINPUT = -1 </Condition>
+      </Component>
+
+      <Component Id='DisconnectAction_Property_Component' Feature='Server' Guid='13a42951-461a-49d3-a3e7-e299a881cd7d' Permanent='yes'>
+        <RegistryValue Id='DisconnectAction_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='DisconnectAction' Value='[VALUE_OF_DISCONNECTACTION]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_DISCONNECTACTION = 1 </Condition>
+      </Component>
+      <Component Id='DisconnectAction_Delete_Component' Feature='Server' Guid='{005E4822-64AC-4b0c-B014-BF3027B193B0}' Permanent='yes'>
+        <RemoveRegistryValue Id="DisconnectAction_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="DisconnectAction" />
+        <Condition> SET_DISCONNECTACTION = -1 </Condition>
+      </Component>
+
+      <Component Id='DisconnectClients_Property_Component' Feature='Server' Guid='f163d494-927c-411a-a7e8-fa402bb49c0c' Permanent='yes'>
+        <RegistryValue Id='DisconnectClients_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='DisconnectClients' Value='[VALUE_OF_DISCONNECTCLIENTS]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_DISCONNECTCLIENTS = 1 </Condition>
+      </Component>
+      <Component Id='DisconnectClients_Delete_Component' Feature='Server' Guid='{F44295CB-2210-446c-A12A-4D29C181874E}' Permanent='yes'>
+        <RemoveRegistryValue Id="DisconnectClients_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="DisconnectClients" />
+        <Condition> SET_DISCONNECTCLIENTS = -1 </Condition>
+      </Component>
+
+      <Component Id='EnableFileTransfers_Property_Component' Feature='Server' Guid='9e9e081a-0462-405b-95a5-fcbab2afa1ae' Permanent='yes'>
+        <RegistryValue Id='EnableFileTransfers_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='EnableFileTransfers' Value='[VALUE_OF_ENABLEFILETRANSFERS]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_ENABLEFILETRANSFERS = 1 </Condition>
+      </Component>
+      <Component Id='EnableFileTransfers_Delete_Component' Feature='Server' Guid='{B49BCFE2-DB02-442b-973C-FECEF491C3CA}' Permanent='yes'>
+        <RemoveRegistryValue Id="EnableFileTransfers_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="EnableFileTransfers" />
+        <Condition> SET_ENABLEFILETRANSFERS = -1 </Condition>
+      </Component>
+
+      <Component Id='EnableUrlParams_Property_Component' Feature='Server' Guid='d71d4fd1-5909-4319-acd5-85a2b262ba4d' Permanent='yes'>
+        <RegistryValue Id='EnableUrlParams_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='EnableUrlParams' Value='[VALUE_OF_ENABLEURLPARAMS]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_ENABLEURLPARAMS = 1 </Condition>
+      </Component>
+      <Component Id='EnableUrlParams_Delete_Component' Feature='Server' Guid='{5EFFB572-977C-48f4-A4BF-FC799870D19D}' Permanent='yes'>
+        <RemoveRegistryValue Id="EnableUrlParams_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="EnableUrlParams" />
+        <Condition> SET_ENABLEURLPARAMS = -1 </Condition>
+      </Component>
+
+      <Component Id='ExtraPorts_Property_Component' Feature='Server' Guid='442a3d92-fe69-4381-a632-3f70b2c719b1' Permanent='yes'>
+        <RegistryValue Id='ExtraPorts_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='ExtraPorts' Value='[VALUE_OF_EXTRAPORTS]' Type='string'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_EXTRAPORTS = 1 </Condition>
+      </Component>
+      <Component Id='ExtraPorts_Delete_Component' Feature='Server' Guid='{25EAFE61-F8CD-4c98-B211-CCEA6B583DC1}' Permanent='yes'>
+        <RemoveRegistryValue Id="ExtraPorts_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="ExtraPorts" />
+        <Condition> SET_EXTRAPORTS = -1 </Condition>
+      </Component>
+
+      <Component Id='GrabTransparentWindows_Property_Component' Feature='Server' Guid='320591cb-a17d-458a-9901-e69653b9cccb' Permanent='yes'>
+        <RegistryValue Id='GrabTransparentWindows_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='GrabTransparentWindows' Value='[VALUE_OF_GRABTRANSPARENTWINDOWS]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_GRABTRANSPARENTWINDOWS = 1 </Condition>
+      </Component>
+      <Component Id='GrabTransparentWindows_Delete_Component' Feature='Server' Guid='{6F21995F-251B-4b2b-82FD-7FCD65C76600}' Permanent='yes'>
+        <RemoveRegistryValue Id="GrabTransparentWindows_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="GrabTransparentWindows" />
+        <Condition> SET_GRABTRANSPARENTWINDOWS = -1 </Condition>
+      </Component>
+
+      <Component Id='HttpPort_Property_Component' Feature='Server' Guid='dfa5f513-9c1f-4281-a507-f9a924965247' Permanent='yes'>
+        <RegistryValue Id='HttpPort_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='HttpPort' Value='[VALUE_OF_HTTPPORT]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_HTTPPORT = 1 </Condition>
+      </Component>
+      <Component Id='HttpPort_Delete_Component' Feature='Server' Guid='{198330AA-E683-4ad7-A831-BD2F7CF9E49D}' Permanent='yes'>
+        <RemoveRegistryValue Id="HttpPort_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="HttpPort" />
+        <Condition> SET_HTTPPORT = -1 </Condition>
+      </Component>
+
+      <Component Id='IpAccessControl_Property_Component' Feature='Server' Guid='1345b6fe-f583-422d-9e99-f35b7462dbfc' Permanent='yes'>
+        <RegistryValue Id='IpAccessControl_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='IpAccessControl' Value='[VALUE_OF_IPACCESSCONTROL]' Type='string'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_IPACCESSCONTROL = 1 </Condition>
+      </Component>
+      <Component Id='IpAccessControl_Delete_Component' Feature='Server' Guid='{02E2133F-0B85-4ada-99A4-96A6BED495B1}' Permanent='yes'>
+        <RemoveRegistryValue Id="IpAccessControl_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="IpAccessControl" />
+        <Condition> SET_IPACCESSCONTROL = -1 </Condition>
+      </Component>
+
+      <Component Id='LocalInputPriority_Property_Component' Feature='Server' Guid='be847fb2-2d5d-4a1f-88e2-09dced01e1f1' Permanent='yes'>
+        <RegistryValue Id='LocalInputPriority_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='LocalInputPriority' Value='[VALUE_OF_LOCALINPUTPRIORITY]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_LOCALINPUTPRIORITY = 1 </Condition>
+      </Component>
+      <Component Id='LocalInputPriority_Delete_Component' Feature='Server' Guid='{4BE15651-46CA-416b-9C8A-10B46D2EB473}' Permanent='yes'>
+        <RemoveRegistryValue Id="LocalInputPriority_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="LocalInputPriority" />
+        <Condition> SET_LOCALINPUTPRIORITY = -1 </Condition>
+      </Component>
+
+      <Component Id='LocalInputPriorityTimeout_Property_Component' Feature='Server' Guid='0ec9e8eb-8ef7-4b73-bf24-add28c8ce6d3' Permanent='yes'>
+        <RegistryValue Id='LocalInputPriorityTimeout_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='LocalInputPriorityTimeout' Value='[VALUE_OF_LOCALINPUTPRIORITYTIMEOUT]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_LOCALINPUTPRIORITYTIMEOUT = 1 </Condition>
+      </Component>
+      <Component Id='LocalInputPriorityTimeout_Delete_Component' Feature='Server' Guid='{8FBA9BD0-981A-43aa-B7BA-0A1059296974}' Permanent='yes'>
+        <RemoveRegistryValue Id="LocalInputPriorityTimeout_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="LocalInputPriorityTimeout" />
+        <Condition> SET_LOCALINPUTPRIORITYTIMEOUT = -1 </Condition>
+      </Component>
+
+      <Component Id='LogLevel_Property_Component' Feature='Server' Guid='3865b4f7-f33a-48dc-9c93-1e2de6deeacb' Permanent='yes'>
+        <RegistryValue Id='LogLevel_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='LogLevel' Value='[VALUE_OF_LOGLEVEL]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_LOGLEVEL = 1 </Condition>
+      </Component>
+      <Component Id='LogLevel_Delete_Component' Feature='Server' Guid='{04588ADD-0CD2-4e76-84A0-57EFA1B12040}' Permanent='yes'>
+        <RemoveRegistryValue Id="LogLevel_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="LogLevel" />
+        <Condition> SET_LOGLEVEL = -1 </Condition>
+      </Component>
+
+      <Component Id='LoopbackOnly_Property_Component' Feature='Server' Guid='7b5f4ee6-0e6e-4339-a764-8a8ec80b0fcc' Permanent='yes'>
+        <RegistryValue Id='LoopbackOnly_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='LoopbackOnly' Value='[VALUE_OF_LOOPBACKONLY]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_LOOPBACKONLY = 1 </Condition>
+      </Component>
+      <Component Id='LoopbackOnly_Delete_Component' Feature='Server' Guid='{BAAD352F-15C6-4feb-8895-6400CD329228}' Permanent='yes'>
+        <RemoveRegistryValue Id="LoopbackOnly_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="LoopbackOnly" />
+        <Condition> SET_LOOPBACKONLY = -1 </Condition>
+      </Component>
+
+      <Component Id='NeverShared_Property_Component' Feature='Server' Guid='cdda3ab6-a1f4-426c-b43a-a0bbfde0a258' Permanent='yes'>
+        <RegistryValue Id='NeverShared_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='NeverShared' Value='[VALUE_OF_NEVERSHARED]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_NEVERSHARED = 1 </Condition>
+      </Component>
+      <Component Id='NeverShared_Delete_Component' Feature='Server' Guid='{A444117D-EE55-497a-9568-EBE3C66B9C3B}' Permanent='yes'>
+        <RemoveRegistryValue Id="NeverShared_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="NeverShared" />
+        <Condition> SET_NEVERSHARED = -1 </Condition>
+      </Component>
+
+      <Component Id='PollingInterval_Property_Component' Feature='Server' Guid='36465d98-947c-4918-8aa8-b99d05bcb4a7' Permanent='yes'>
+        <RegistryValue Id='PollingInterval_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='PollingInterval' Value='[VALUE_OF_POLLINGINTERVAL]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_POLLINGINTERVAL = 1 </Condition>
+      </Component>
+      <Component Id='PollingInterval_Delete_Component' Feature='Server' Guid='{F4E5A8FA-ED01-4352-972A-0CA81DE31410}' Permanent='yes'>
+        <RemoveRegistryValue Id="PollingInterval_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="PollingInterval" />
+        <Condition> SET_POLLINGINTERVAL = -1 </Condition>
+      </Component>
+
+      <Component Id='QueryAcceptOnTimeout_Property_Component' Feature='Server' Guid='3097d546-bbeb-405b-9a05-7a6dc0f92a60' Permanent='yes'>
+        <RegistryValue Id='QueryAcceptOnTimeout_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='QueryAcceptOnTimeout' Value='[VALUE_OF_QUERYACCEPTONTIMEOUT]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_QUERYACCEPTONTIMEOUT = 1 </Condition>
+      </Component>
+      <Component Id='QueryAcceptOnTimeout_Delete_Component' Feature='Server' Guid='{A7526406-A4E8-4cf2-B8E8-76CC560496D1}' Permanent='yes'>
+        <RemoveRegistryValue Id="QueryAcceptOnTimeout_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="QueryAcceptOnTimeout" />
+        <Condition> SET_QUERYACCEPTONTIMEOUT = -1 </Condition>
+      </Component>
+
+      <Component Id='QueryTimeout_Property_Component' Feature='Server' Guid='94ccbbf6-e7df-49d8-a6df-066328bd5d24' Permanent='yes'>
+        <RegistryValue Id='QueryTimeout_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='QueryTimeout' Value='[VALUE_OF_QUERYTIMEOUT]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_QUERYTIMEOUT = 1 </Condition>
+      </Component>
+      <Component Id='QueryTimeout_Delete_Component' Feature='Server' Guid='{B5F9FABC-1540-46c2-A3CC-C6B702F3955D}' Permanent='yes'>
+        <RemoveRegistryValue Id="QueryTimeout_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="QueryTimeout" />
+        <Condition> SET_QUERYTIMEOUT = -1 </Condition>
+      </Component>
+
+      <Component Id='RemoveWallpaper_Property_Component' Feature='Server' Guid='72561f7b-e8d7-411c-8bac-720c108a1362' Permanent='yes'>
+        <RegistryValue Id='RemoveWallpaper_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='RemoveWallpaper' Value='[VALUE_OF_REMOVEWALLPAPER]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_REMOVEWALLPAPER = 1 </Condition>
+      </Component>
+      <Component Id='RemoveWallpaper_Delete_Component' Feature='Server' Guid='{92E220E3-C961-462e-80A9-A9CEB40A79EB}' Permanent='yes'>
+        <RemoveRegistryValue Id="RemoveWallpaper_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="RemoveWallpaper" />
+        <Condition> SET_REMOVEWALLPAPER = -1 </Condition>
+      </Component>
+
+      <Component Id='RfbPort_Property_Component' Feature='Server' Guid='b28f319f-a703-4ede-8c51-5ecd60907e56' Permanent='yes'>
+        <RegistryValue Id='RfbPort_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='RfbPort' Value='[VALUE_OF_RFBPORT]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_RFBPORT = 1 </Condition>
+      </Component>
+      <Component Id='RfbPort_Delete_Component' Feature='Server' Guid='{59E111B6-BF98-4cd4-A259-6C713261D701}' Permanent='yes'>
+        <RemoveRegistryValue Id="RfbPort_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="RfbPort" />
+        <Condition> SET_RFBPORT = -1 </Condition>
+      </Component>
+
+      <Component Id='RunControlInterface_Property_Component' Feature='Server' Guid='3506451d-0b3d-490f-8f70-813679ffd766' Permanent='yes'>
+        <RegistryValue Id='RunControlInterface_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='RunControlInterface' Value='[VALUE_OF_RUNCONTROLINTERFACE]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_RUNCONTROLINTERFACE = 1 </Condition>
+      </Component>
+      <Component Id='RunControlInterface_Delete_Component' Feature='Server' Guid='{01F2C2D6-3E26-4065-8510-D6F3BBBF3451}' Permanent='yes'>
+        <RemoveRegistryValue Id="RunControlInterface_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="RunControlInterface" />
+        <Condition> SET_RUNCONTROLINTERFACE = -1 </Condition>
+      </Component>
+
+      <Component Id='SaveLogToAllUsersPath_Property_Component' Feature='Server' Guid='05554ca5-d5c8-4b36-9f28-a401c5afccf7' Permanent='yes'>
+        <RegistryValue Id='SaveLogToAllUsersPath_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='SaveLogToAllUsersPath' Value='[VALUE_OF_SAVELOGTOALLUSERSPATH]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_SAVELOGTOALLUSERSPATH = 1 </Condition>
+      </Component>
+      <Component Id='SaveLogToAllUsersPath_Delete_Component' Feature='Server' Guid='{D2905101-F86E-4e74-85BF-4DD95096B4C3}' Permanent='yes'>
+        <RemoveRegistryValue Id="SaveLogToAllUsersPath_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="SaveLogToAllUsersPath" />
+        <Condition> SET_SAVELOGTOALLUSERSPATH = -1 </Condition>
+      </Component>
+
+      <Component Id='UseD3D_Property_Component' Feature='Server' Guid='{F04790D5-9A64-4C35-BE4E-6AE717D1981B}' Permanent='yes'>
+        <RegistryValue Id='UseD3D_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='UseD3D' Value='[VALUE_OF_USED3D]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_USED3D = 1 </Condition>
+      </Component>
+      <Component Id='UseD3D_Delete_Component' Feature='Server' Guid='{112AFBB6-D613-4103-AB7A-911DDA9D93C3}' Permanent='yes'>
+        <RemoveRegistryValue Id="UseD3D_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="UseD3D" />
+        <Condition> SET_USED3D = -1 </Condition>
+      </Component>
+
+      <Component Id='UseMirrorDriver_Property_Component' Feature='Server' Guid='{8E5345C9-C778-4c2f-87E1-869952BB2B03}' Permanent='yes'>
+        <RegistryValue Id='UseMirrorDriver_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='UseMirrorDriver' Value='[VALUE_OF_USEMIRRORDRIVER]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_USEMIRRORDRIVER = 1 </Condition>
+      </Component>
+      <Component Id='UseMirrorDriver_Delete_Component' Feature='Server' Guid='{1A2F9735-A9C3-4aff-91B1-B7386121C5CE}' Permanent='yes'>
+        <RemoveRegistryValue Id="UseMirrorDriver_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="UseMirrorDriver" />
+        <Condition> SET_USEMIRRORDRIVER = -1 </Condition>
+      </Component>
+
+      <Component Id='UseControlAuthentication_Property_Component' Feature='Server' Guid='6d878d9a-f60f-47c3-ad71-4db2b216db03' Permanent='yes'>
+        <RegistryValue Id='UseControlAuthentication_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='UseControlAuthentication' Value='[VALUE_OF_USECONTROLAUTHENTICATION]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_USECONTROLAUTHENTICATION = 1 </Condition>
+      </Component>
+      <Component Id='UseControlAuthentication_Delete_Component' Feature='Server' Guid='{25BF5369-6745-4801-8EC3-0114B3BAFC5D}' Permanent='yes'>
+        <RemoveRegistryValue Id="UseControlAuthentication_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="UseControlAuthentication" />
+        <Condition> SET_USECONTROLAUTHENTICATION = -1 </Condition>
+      </Component>
+
+      <Component Id='RepeatControlAuthentication_Property_Component' Feature='Server' Guid='{80EB6374-546A-43d3-9F1F-B9978892AA2F}' Permanent='yes'>
+        <RegistryValue Id='RepeatControlAuthentication_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='RepeatControlAuthentication' Value='[VALUE_OF_REPEATCONTROLAUTHENTICATION]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_REPEATCONTROLAUTHENTICATION = 1 </Condition>
+      </Component>
+      <Component Id='RepeatControlAuthentication_Delete_Component' Feature='Server' Guid='{97DA271A-04B6-4dc5-8BA1-1CC84AD4C793}' Permanent='yes'>
+        <RemoveRegistryValue Id="RepeatControlAuthentication_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="RepeatControlAuthentication" />
+        <Condition> SET_REPEATCONTROLAUTHENTICATION = -1 </Condition>
+      </Component>
+
+      <Component Id='ControlPassword_Delete_Component' Feature='Server' Guid='{C9B5796A-30DB-489e-B886-5DF997342974}' Permanent='yes'>
+        <RemoveRegistryValue Id="ControlPassword_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="ControlPassword" />
+        <Condition> SET_CONTROLPASSWORD = -1 </Condition>
+      </Component>
+
+      <Component Id='UseVncAuthentication_Property_Component' Feature='Server' Guid='dcaabbae-4572-4f5e-8a61-a0c589404439' Permanent='yes'>
+        <RegistryValue Id='UseVncAuthentication_RegValue' Action='write'
+                       Root='HKLM' Key='Software\TightVNC\Server'
+                       Name='UseVncAuthentication' Value='[VALUE_OF_USEVNCAUTHENTICATION]' Type='integer'>
+          <Permission GenericAll='yes' User='System'/>
+          <Permission GenericAll='yes' User='Administrators'/>
+        </RegistryValue>
+        <Condition> SET_USEVNCAUTHENTICATION = 1 </Condition>
+      </Component>
+      <Component Id='UseVncAuthentication_Delete_Component' Feature='Server' Guid='{D2430009-F772-4bd5-BF65-3C5F97EF7AB9}' Permanent='yes'>
+        <RemoveRegistryValue Id="UseVncAuthentication_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="UseVncAuthentication" />
+        <Condition> SET_USEVNCAUTHENTICATION = -1 </Condition>
+      </Component>
+
+      <Component Id='Password_Delete_Component' Feature='Server' Guid='{8CD5E4C6-D825-4972-A404-06C923C2D522}' Permanent='yes'>
+        <RemoveRegistryValue Id="Password_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="Password" />
+        <Condition> SET_PASSWORD = -1 </Condition>
+      </Component>
+
+      <Component Id='PasswordViewOnly_Delete_Component' Feature='Server' Guid='{20D2968F-9CD0-42c4-BDA5-43E3D32B5C8D}' Permanent='yes'>
+        <RemoveRegistryValue Id="PasswordViewOnly_Delete_RegValue" Root="HKLM" Key="Software\TightVNC\Server"
+                             Name="PasswordViewOnly" />
+        <Condition> SET_VIEWONLYPASSWORD = -1 </Condition>
+      </Component>
+  <?endif?>
+
+    </DirectoryRef>
+  </Fragment>
+</Wix>

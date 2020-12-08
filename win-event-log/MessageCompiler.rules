@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VisualStudioToolFile
+	Name="Message Compiler Rule"
+	Version="8,00"
+	>
+	<Rules>
+		<CustomBuildRule
+			Name="MessageCompiler"
+			DisplayName="Message Compiler"
+			CommandLine="mc.exe -U [AllOptions] [inputs]"
+			Outputs="[$RcOutDir].rc"
+			FileExtensions="*.mc"
+			>
+			<Properties>
+				<StringProperty
+					Name="RcOutDir"
+					DisplayName="OutFile"
+					Switch="-r [value]"
+					DefaultValue=".\"
+				/>
+				<StringProperty
+					Name="HOutDir"
+					DisplayName="HOutDir"
+					Description="Gives the path of where to create the C include file"
+					Switch="-h [value]"
+					DefaultValue=".\"
+				/>
+			</Properties>
+		</CustomBuildRule>
+	</Rules>
+</VisualStudioToolFile>

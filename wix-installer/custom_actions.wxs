@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <?include product_definitions.wxi?>
+
+    <?ifndef SERVER_FREE ?>
+    <Binary Id="SetupHelperBin" SourceFile="$(var.BinFolder)\setup-helper.dll"/>
+
+    <CustomAction Id="AllowSas"
+                  BinaryKey="SetupHelperBin"
+                  DllEntry='AllowSas'
+                  Impersonate="no"
+                  Execute="commit"
+                  Return="ignore" />
+
+    <CustomAction Id="RegService"
+                  FileKey="tvnserverEXE"
+                  ExeCommand="-reinstall -silent"
+                  Impersonate="no"
+                  Execute="commit"
+                  Return="ignore" />
+
+    <CustomAction Id="UnregService"
+                  FileKey="tvnserverEXE"
+                  ExeCommand="-remove -silent"
+                  Impersonate="no"
+                  Execute="commit"
+                  Return="ignore" />
+
+    <CustomAction Id="StartService"
+                  FileKey="tvnserverEXE"
+                  ExeCommand="-start"
+                  Impersonate="no"
+                  Execute="commit"
+                  Return="ignore" />
+
+    <CustomAction Id="SetPasswordsAction"
+                  FileKey="tvnserverEXE"
+                  ExeCommand='-checkservicepasswords'
+                  Impersonate="no"
+                  Execute="commit"
+                  Return="ignore" />
+
+    <CustomAction Id="SetDataForPasswordsActionSilently"
+                  Return="check"
+                  Property="SetPasswordsActionSilently"
+                  Value="[VALUE_OF_PASSWORD]" />
+    <CustomAction Id="SetPasswordsActionSilently"
+                  BinaryKey="SetupHelperBin"
+                  DllEntry='SetRfbPassword'
+                  Impersonate="no"
+                  Execute="commit"
+                  Return="check" />
+
+    <CustomAction Id="SetDataForViewOnlyPasswordsActionSilently"
+                  Return="check"
+                  Property="SetViewOnlyPasswordsActionSilently"
+                  Value="[VALUE_OF_VIEWONLYPASSWORD]" />
+    <CustomAction Id="SetViewOnlyPasswordsActionSilently"
+                  BinaryKey="SetupHelperBin"
+                  DllEntry='SetViewOnlyPassword'
+                  Impersonate="no"
+                  Execute="commit"
+                  Return="check" />
+
+    <CustomAction Id="SetDataForControlPasswordsActionSilently"
+                  Return="check"
+                  Property="SetControlPasswordsActionSilently"
+                  Value="[VALUE_OF_CONTROLPASSWORD]" />
+    <CustomAction Id="SetControlPasswordsActionSilently"
+                  BinaryKey="SetupHelperBin"
+                  DllEntry='SetControlPassword'
+                  Impersonate="no"
+                  Execute="commit"
+                  Return="check"/>
+
+    <?endif?>
+
+    <CustomAction Id='AlreadyUpdated' Error='TightVNC has already been updated to $(var.Version) or newer.' />
+    <CustomAction Id='NoDowngrade' Error='A later version of [ProductName] is already installed.' />
+
+  </Fragment>
+</Wix>

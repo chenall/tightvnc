@@ -1,0 +1,154 @@
+<?xml version='1.0' encoding='Windows-1252'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+
+  <?include product_definitions.wxi?>
+
+  <Product
+    Name='$(var.ProductName)'
+    Id='$(var.ProductId)'
+    UpgradeCode='$(var.UpgradeCode)'
+    Language='$(var.Language)'
+    Codepage='$(var.Codepage)'
+    Version='$(var.Version)'
+    Manufacturer='$(var.Manufacturer)'
+  >
+    <Package
+      Id='*'
+      Keywords='Installer'
+      Manufacturer='$(var.Manufacturer)'
+      InstallerVersion='200'
+      Platform='$(var.Platform)'
+      Compressed='yes'
+      InstallPrivileges='elevated'
+      InstallScope='perMachine'
+    />
+
+    <Upgrade Id='$(var.UpgradeCode)'>
+      <UpgradeVersion OnlyDetect='no' Property='PREVIOUSFOUND'
+        Minimum='$(var.StartProductVersion)' IncludeMinimum='yes'
+        Maximum='$(var.Version)' IncludeMaximum='no' />
+      <UpgradeVersion OnlyDetect='yes' Property='SELFFOUND'
+        Minimum='$(var.Version)' IncludeMinimum='yes'
+        Maximum='$(var.Version)' IncludeMaximum='yes' />
+      <UpgradeVersion OnlyDetect='yes' Property='NEWERFOUND'
+        Minimum='$(var.Version)' IncludeMinimum='no' />
+    </Upgrade>
+
+    <Media Id='1' Cabinet='setup.cab' EmbedCab='yes' />
+
+    <!-- FIXME: Correct the text. -->
+    <Condition Message= "This software requires Windows 2000 or higher.">
+      <![CDATA[VersionNT >= 500]]>
+    </Condition>
+
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
+        <Directory Id='INSTALLDIR' Name='$(var.ProductName)'>
+        </Directory>
+      </Directory>
+
+      <Directory Id="ProgramMenuFolder" Name="Programs">
+        <Directory Id="ProgramMenuDir" Name="$(var.ProductName)">
+        <?ifndef SERVER_FREE ?>
+          <Directory Id="ServerMenuDir" Name ="TightVNC Server (Application Mode)"/>
+          <Directory Id="ServiceMenuDir" Name ="TightVNC Server (Service Mode)"/>
+        <?endif?>
+        </Directory>
+      </Directory>
+      <Directory Id="DesktopFolder" Name="Desktop" />
+      <Directory Id="CommonAppDataFolder">
+        <Directory Id="TightProgramDataFolder"
+                   Name="$(var.AllUsersProgramDataFolderName)">
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- The one reference to a property from the properties.wxs file
+         links all properties from the file -->
+    <PropertyRef Id="VIEWER_ASSOCIATE_VNC_EXTENSION"/>
+
+    <FeatureRef Id="TightVNC"/>
+
+    <UIRef Id="TvnUI" />
+    <UIRef Id="WixUI_ErrorProgressText" />
+
+    <?ifndef SERVER_FREE ?>
+    <Icon Id="tvnserver.ico" SourceFile="tvnserver.ico" />
+    <?endif?>
+    <?ifndef VIEWER_FREE ?>
+    <Icon Id="viewer.ico" SourceFile="vncviewer.ico" />
+    <?endif?>
+
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <!--<WixVariable Id="WixUIBannerBmp" Value="\banner.bmp" />-->
+    <!--<WixVariable Id="WixUIDialogBmp" Value="\dialog.bmp" />-->
+    <?ifndef SERVER_FREE ?>
+    <!--<WixVariable Id="WixUIExclamationIco" Value="tvnserver.ico" />-->
+    <WixVariable Id="WixUIInfoIco" Value="tvnserver.ico" />
+    <Property Id="ARPPRODUCTICON" Value="tvnserver.ico" />
+    <?else?>
+    <!--<WixVariable Id="WixUIExclamationIco" Value="vncviewer.ico" />-->
+    <WixVariable Id="WixUIInfoIco" Value="vncviewer.ico" />
+    <Property Id="ARPPRODUCTICON" Value="vnciewer.ico" />
+    <?endif?>
+
+    <!-- Run custom actions during the install -->
+    <InstallExecuteSequence>
+      <RemoveExistingProducts After="InstallInitialize" />
+
+    <?ifndef SERVER_FREE ?>
+      <!--<Custom Action="UnregService" After="InstallInitialize">
+         If the Server feature is deselected
+        <![CDATA[(&Server=2) AND (!Server=3)]]>
+      </Custom> -->
+      <Custom Action='SetDataForPasswordsActionSilently'  After="InstallFiles"/>
+      <Custom Action='SetDataForViewOnlyPasswordsActionSilently'  After="InstallFiles"/>
+      <Custom Action='SetDataForControlPasswordsActionSilently'  After="InstallFiles"/>
+
+      <Custom Action="AllowSas" After="RemoveExistingProducts">
+        (ALLOW_SAS = 1 AND <![CDATA[IS_SILENT <> 1]]> OR
+        SERVER_ALLOW_SAS = 1 AND IS_SILENT = 1)
+        AND NOT REMOVE
+      </Custom>
+
+      <Custom Action="SetPasswordsActionSilently" Before="RegService">
+        SET_PASSWORD = 1 AND IS_SILENT = 1
+        AND <![CDATA[&Server=3 AND NOT (!Server=3)]]>
+        AND NOT REMOVE
+      </Custom>
+      <Custom Action="SetViewOnlyPasswordsActionSilently" Before="RegService">
+        SET_VIEWONLYPASSWORD = 1 AND IS_SILENT = 1
+        AND <![CDATA[&Server=3 AND NOT (!Server=3)]]>
+        AND NOT REMOVE
+      </Custom>
+      <Custom Action="SetControlPasswordsActionSilently" Before="RegService">
+        SET_CONTROLPASSWORD = 1 AND IS_SILENT = 1
+        AND <![CDATA[&Server=3 AND NOT (!Server=3)]]>
+        AND NOT REMOVE
+      </Custom>
+
+      <Custom Action="RegService" Before="InstallFinalize">
+        (REGISTER_AS_SERVICE = 1 AND <![CDATA[IS_SILENT <> 1]]> OR
+        SERVER_REGISTER_AS_SERVICE = 1 AND IS_SILENT = 1)
+        AND <![CDATA[&Server=3 AND NOT (!Server=3)]]>
+        AND NOT REMOVE
+      </Custom>
+      <Custom Action="StartService" After="RegService">
+        (REGISTER_AS_SERVICE = 1 AND <![CDATA[IS_SILENT <> 1]]> OR
+        SERVER_REGISTER_AS_SERVICE = 1 AND IS_SILENT = 1)
+        AND <![CDATA[&Server=3 AND NOT (!Server=3)]]>
+        AND NOT REMOVE
+      </Custom>
+      <Custom Action="SetPasswordsAction" After="StartService">
+        REGISTER_AS_SERVICE = 1 AND <![CDATA[IS_SILENT <> 1]]>
+        AND <![CDATA[&Server=3 AND NOT (!Server=3)]]>
+        AND NOT REMOVE
+      </Custom>
+    <?endif?>
+
+      <Custom Action='AlreadyUpdated' After='FindRelatedProducts'>SELFFOUND</Custom>
+      <Custom Action='NoDowngrade' After='FindRelatedProducts'>NEWERFOUND</Custom>
+    </InstallExecuteSequence>
+
+  </Product>
+</Wix>

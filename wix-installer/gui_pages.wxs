@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+
+    <Property Id='IS_SILENT' Secure='yes'> 0 </Property>
+    <SetProperty Id='IS_SILENT' Value='1'
+                 After='FindRelatedProducts'> <![CDATA[UILevel<>5]]> </SetProperty>
+
+    <!-- UI properties -->
+    <Property Id='ASSOCIATE_VNC_EXTENSION' Secure='yes'> 1 </Property>
+    <Property Id='REGISTER_AS_SERVICE' Secure='yes'> 1 </Property>
+    <Property Id='ADD_FIREWALL_EXCEPTION' Secure='yes'> 1 </Property>
+    <Property Id='ALLOW_SAS' Secure='yes'> 1 </Property>
+
+    <!-- UI pages -->
+    <UI>
+      <Dialog Id="AdditionalTasks" Width="370" Height="270" Title="[ProductName] Setup" NoMinimize="yes">
+        <Control Id="ExplanationLabel" Type="Text" X="15" Y="55" Width="355" Height="25" TabSkip="yes">
+          <Text>Select additional tasks you would like Setup to perform while installing [ProductName] [ProductVersion], then click Next.</Text>
+        </Control>
+
+        <?ifndef VIEWER_FREE ?>
+        <Control Id="FileAssocLabel" Type="Text" X="15" Y="82" Width="100" Height="15" TabSkip="no" Text="File associations:">
+          <Condition Action="hide"> <![CDATA[&Viewer<>3]]> </Condition>
+        </Control>
+        <Control Id="FileAssocCheckBox" Type="CheckBox" X="25" Y="95" Width="300" Height="15" Property="ASSOCIATE_VNC_EXTENSION" CheckBoxValue="1" Text="Associate .vnc files with TightVNC Viewer">
+          <Condition Action="hide"> <![CDATA[&Viewer<>3]]> </Condition>
+        </Control>
+        <?endif?>
+
+        <?ifndef SERVER_FREE ?>
+        <Control Id="ServiceConfLabel" Type="Text" X="15" Y="117" Width="300" Height="15" TabSkip="no" Text="TightVNC Service configuration:">
+          <Condition Action="hide"> <![CDATA[&Server<>3]]> </Condition>
+        </Control>
+        <Control Id="ServiceRegCheckBox" Type="CheckBox" X="25" Y="130" Width="300" Height="15" Property="REGISTER_AS_SERVICE" CheckBoxValue="1" Text="Register TightVNC Server as a system service (recommended)" >
+          <Condition Action="hide"> <![CDATA[&Server<>3]]> </Condition>
+        </Control>
+        <Control Id="SasCheckBox"
+                 Type="CheckBox" X="25" Y="145" Width="300" Height="15"
+                 Property="ALLOW_SAS" CheckBoxValue="1"
+                 Text="Configure system to allow services simulate Ctrl-Alt-Del">
+          <Condition Action="hide"> <![CDATA[&Server<>3]]> </Condition>
+        </Control>
+        <?endif?>
+
+        <Control Id="FirewallLabel" Type="Text" X="15" Y="167" Width="300" Height="15" TabSkip="no" Text="Windows Firewall configuration:">
+          <Condition Action="hide"> 
+              <?ifndef SERVER_FREE ?>
+              (<![CDATA[&Server=3 OR &Viewer = 3]]>)
+              <?else?>
+              (<![CDATA[&Viewer <> 3]]>)
+              <?endif?>
+	  </Condition>
+        </Control>
+        <Control Id="FirewallCheckBox" Type="CheckBox" X="25" Y="180" Width="300" Height="15" Property="ADD_FIREWALL_EXCEPTION" CheckBoxValue="1" Text="Add exception for TightVNC to Windows Firewall">
+          <Condition Action="hide">
+            <?ifndef VIEWER_FREE ?>
+              <?ifndef SERVER_FREE ?>
+              (<![CDATA[&Server=3 OR &Viewer = 3]]>)
+              <?else?>
+              (<![CDATA[&Viewer <> 3]]>)
+              <?endif?>
+            <?else?>
+            <![CDATA[&Server<>3]]>
+            <?endif?>
+          </Condition>
+        </Control>
+
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+          <!--<Publish Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>-->
+        </Control>
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+          <!--<Publish Event="NewDialog" Value="SetupTypeDlg">ProductID</Publish>-->
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>Which additional tasks should be performed?</Text>
+        </Control>
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>{\WixUI_Font_Title}Select Additional Tasks</Text>
+        </Control>
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+      </Dialog>
+    </UI>
+  </Fragment>
+</Wix>

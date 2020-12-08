@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="socket">
+      <UniqueIdentifier>{cacce44a-9390-4bc1-a256-bd074cb355f4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="socket\sockdefs.h">
+      <Filter>socket</Filter>
+    </ClInclude>
+    <ClInclude Include="socket\SocketAddressIPv4.h">
+      <Filter>socket</Filter>
+    </ClInclude>
+    <ClInclude Include="socket\SocketException.h">
+      <Filter>socket</Filter>
+    </ClInclude>
+    <ClInclude Include="socket\SocketIPv4.h">
+      <Filter>socket</Filter>
+    </ClInclude>
+    <ClInclude Include="socket\SocketStream.h">
+      <Filter>socket</Filter>
+    </ClInclude>
+    <ClInclude Include="socket\WindowsSocket.h">
+      <Filter>socket</Filter>
+    </ClInclude>
+    <ClInclude Include="RfbInputGate.h" />
+    <ClInclude Include="RfbOutputGate.h" />
+    <ClInclude Include="TcpClientThread.h" />
+    <ClInclude Include="TcpServer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="socket\SocketAddressIPv4.cpp">
+      <Filter>socket</Filter>
+    </ClCompile>
+    <ClCompile Include="socket\SocketException.cpp">
+      <Filter>socket</Filter>
+    </ClCompile>
+    <ClCompile Include="socket\SocketIPv4.cpp">
+      <Filter>socket</Filter>
+    </ClCompile>
+    <ClCompile Include="socket\SocketStream.cpp">
+      <Filter>socket</Filter>
+    </ClCompile>
+    <ClCompile Include="socket\WindowsSocket.cpp">
+      <Filter>socket</Filter>
+    </ClCompile>
+    <ClCompile Include="RfbInputGate.cpp" />
+    <ClCompile Include="RfbOutputGate.cpp" />
+    <ClCompile Include="TcpClientThread.cpp" />
+    <ClCompile Include="TcpServer.cpp" />
+  </ItemGroup>
+</Project>

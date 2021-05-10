@@ -63,6 +63,7 @@ protected:
   virtual BOOL onInitDialog();
   virtual BOOL onNotify(UINT controlID, LPARAM data);
   virtual BOOL onCommand(UINT controlID, UINT notificationID);
+  virtual BOOL onClose();
   virtual BOOL onDestroy();
 
   void onOkButtonClick();

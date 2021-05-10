@@ -86,7 +86,7 @@ public:
   /**
   * Gets RDP console session id.
   * @return RDP console session id if WTS is avaliable and RDP console exists or 0 if
-  * WinAPI WTSEnumerateSessions function not avaliable.
+  * WinAPI WTSEnumerateSessions function not avaliable or there is no sessions with RDP in name.
   */
   static DWORD getRdpSessionId(LogWriter *log);
 

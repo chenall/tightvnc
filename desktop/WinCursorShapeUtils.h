@@ -55,7 +55,7 @@ public:
 
   // Matrox videocard returns 256 byte width buffer for 32 pixel cursor,
   // need trim it for correct handling
-  static void trimBuffer(std::vector<char> *buffer, DXGI_OUTDUPL_POINTER_SHAPE_INFO& shapeInfo, UINT newPitch);
+  static void trimBuffer(std::vector<char> *buffer, DXGI_OUTDUPL_POINTER_SHAPE_INFO  *shapeInfo);
 
 private:
   // Inverts bit array with the "not" operator.
@@ -82,7 +82,7 @@ private:
   static bool isPixelTransparent(char* const buffer, UINT type, UINT height, UINT pitch, UINT x, UINT y);
   static bool isColorPixelTransparent(UINT32 pixel, UINT type);
   static bool isMonochromePixelTransparent(char andByte, char xorByte, UINT x);
-  static void trimTransparent(std::vector<char> *buffer, DXGI_OUTDUPL_POINTER_SHAPE_INFO& shapeInfo);
+  static void trimTransparent(std::vector<char> *buffer, DXGI_OUTDUPL_POINTER_SHAPE_INFO *shapeInfo);
 };
 
 template< typename T >

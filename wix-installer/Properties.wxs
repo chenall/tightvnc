@@ -127,8 +127,7 @@
     <Property Id='SET_IDLETIMEOUT'> 0 </Property>
     <Property Id='VALUE_OF_IDLETIMEOUT'> 0 </Property>
 
-    <!-- FIXME: Set SET_CONNECTRDP to 0 in the release after 2.8.55  -->
-    <Property Id='SET_CONNECTRDP'> 1 </Property>
+    <Property Id='SET_CONNECTRDP'> 0 </Property>
     <Property Id='VALUE_OF_CONNECTRDP'> 0 </Property>
 
     <!-- Components to install above properties -->

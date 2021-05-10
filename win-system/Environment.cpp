@@ -170,28 +170,6 @@ bool Environment::getComputerName(StringStorage *out)
   return true;
 }
 
-void Environment::restoreWallpaper(LogWriter *log)
-{
-  // FIXME: Remove log from here. Log only from caller.
-  log->info(_T("Try to restore wallpaper"));
-  Impersonator imp(log);
-  AutoImpersonator ai(&imp, log);
-
-  if (SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, 0, 0) == 0) {
-      throw SystemException(_T("Cannot restore desktop wallpaper"));
-  }
-}
-
-void Environment::disableWallpaper(LogWriter *log)
-{
-  log->info(_T("Try to disable wallpaper"));
-  Impersonator imp(log);
-  AutoImpersonator ai(&imp, log);
-
-  if (SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, _T(""), 0) == 0) {
-    throw SystemException(_T("Cannot disable desktop wallpaper"));
-  }
-}
 
 void Environment::init()
 {

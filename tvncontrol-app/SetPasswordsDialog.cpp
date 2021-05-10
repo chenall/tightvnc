@@ -202,3 +202,9 @@ void SetPasswordsDialog::updateEditControls()
   m_admPassEdit1.setEnabled(m_protectControlInterface);
   m_admPassEdit2.setEnabled(m_protectControlInterface);
 }
+
+BOOL SetPasswordsDialog::onClose()
+{
+  kill(IDCANCEL);
+  return FALSE;
+}

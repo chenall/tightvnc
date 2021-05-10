@@ -43,9 +43,11 @@ void Impersonator::impersonateAsLoggedUser()
 {
   WTS::queryConsoleUserToken(&m_token, m_log);
 
-  if ((!DuplicateToken(m_token, SecurityImpersonation, &m_dupToken)) || 
-      (!ImpersonateLoggedOnUser(m_dupToken))) {
-    throw SystemException();
+  if ((!DuplicateToken(m_token, SecurityImpersonation, &m_dupToken))) {
+    throw SystemException(_T("could not DuplicateToken"));
+    if (!ImpersonateLoggedOnUser(m_dupToken)) {
+      throw SystemException(_T("could not ImpersonateLoggedOnUser"));
+    }
   }
 }
 
@@ -63,6 +65,6 @@ void Impersonator::revertToSelf()
   m_token = INVALID_HANDLE_VALUE;
 
   if (!RevertToSelf()) {
-    throw SystemException();
+    throw SystemException(_T("could not RevertToSelf"));
   }
 }

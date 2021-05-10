@@ -89,11 +89,11 @@ void Win8DeskDuplicationThread::execute()
         {
           begins[i] = DateTime::now();
           WinDxgiAcquiredFrame acquiredFrame(&m_outDupl[i], ACQUIRE_TIMEOUT);
-		  if (acquiredFrame.wasTimeOut()) {
-			timeouts[i]++;
-			m_log->debug(_T("Timeout on acquire frame for output: %d"), i);
-			Thread::yield();
-			continue;
+		      if (acquiredFrame.wasTimeOut()) {
+			      timeouts[i]++;
+			      m_log->debug(_T("Timeout on acquire frame for output: %d"), i);
+			      Thread::yield();
+			      continue;
           }
           else {
             int accum_frames = acquiredFrame.getFrameInfo()->AccumulatedFrames;
@@ -116,9 +116,9 @@ void Win8DeskDuplicationThread::execute()
             // Check cursor pointer for updates.
             try {
               processCursor(info, i);
-			} catch (WinDxException &e) {
-		      m_log->debug(_T("Error on cursor processing: %s, (%x)"), e.getMessage(), (int)e.getErrorCode());
-			} // Cursor
+			      } catch (WinDxException &e) {
+		          m_log->debug(_T("Error on cursor processing: %s, (%x)"), e.getMessage(), (int)e.getErrorCode());
+			      } // Cursor
           }
         }
         Thread::yield();
@@ -317,8 +317,8 @@ void Win8DeskDuplicationThread::processCursor(const DXGI_OUTDUPL_FRAME_INFO *inf
     //
     bool shapeChanged = info->PointerShapeBufferSize != 0;
     if (shapeChanged) {
-	  m_log->debug(_T("Cursor shape chagned"));
-	  m_outDupl[out].getFrameCursorShape(m_targetCurShape->getCursorShapeForWriting(), info->PointerShapeBufferSize);
+	    m_log->debug(_T("Cursor shape chagned"));
+	    m_outDupl[out].getFrameCursorShape(m_targetCurShape->getCursorShapeForWriting(), info->PointerShapeBufferSize, m_log);
       m_duplListener->onCursorShapeChanged();
     }
 

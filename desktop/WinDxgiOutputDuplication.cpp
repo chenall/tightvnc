@@ -136,8 +136,9 @@ size_t WinDxgiOutputDuplication::getFrameDirtyRects(std::vector<RECT> *dirtyRect
   return bufSize / elementSize;
 }
 
-void WinDxgiOutputDuplication::getFrameCursorShape(CursorShape *cursorShape, UINT pointerShapeBufferSize)
+void WinDxgiOutputDuplication::getFrameCursorShape(CursorShape *cursorShape, UINT pointerShapeBufferSize, LogWriter *log)
 {
+  log->debug(_T("%d"), pointerShapeBufferSize);
   // This function can calculate required buffer size by self but the size is already known.
   if (pointerShapeBufferSize == 0) {
 	  cursorShape->resetToEmpty();
@@ -148,9 +149,15 @@ void WinDxgiOutputDuplication::getFrameCursorShape(CursorShape *cursorShape, UIN
   std::vector<char> buffer(pointerShapeBufferSize);
   DXGI_OUTDUPL_POINTER_SHAPE_INFO shapeInfo;
   hr = m_outDupl->GetFramePointerShape((UINT)buffer.size(), &buffer.front(), &reqSize, &shapeInfo);
+  log->debug(_T("CursorShapeInfo: pounter info buffer size: %d, required: %d"), pointerShapeBufferSize, reqSize);
   if (FAILED(hr)) {
     throw WinDxException(_T("Can't get frame cursor shape with GetFramePointerShape() calling"), hr);
   }
+
+  log->debug(_T("CursorShapeInfo: Type: %d"), shapeInfo.Type);
+  log->debug(_T("CursorShapeInfo: Width: %d, Height: %d"), shapeInfo.Width, shapeInfo.Height);
+  log->debug(_T("CursorShapeInfo: shapeInfo.HotSpot.x: %d, , shapeInfo.HotSpot.y: %d"), shapeInfo.HotSpot.x, shapeInfo.HotSpot.y);
+  log->debug(_T("CursorShapeInfo: Pitch: %d"), shapeInfo.Pitch);
 
   buffer.resize(reqSize);
 
@@ -160,22 +167,29 @@ void WinDxgiOutputDuplication::getFrameCursorShape(CursorShape *cursorShape, UIN
 
   UINT pitch;
   Dimension dim;
+
   if (shapeInfo.Type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME) {
-	  pitch = ((shapeInfo.Width + 15) / 16) * 2;
-	  dim.setDim(shapeInfo.Width, shapeInfo.Height / 2);
-  } else {
-	  pitch = shapeInfo.Width * 4;
-	  dim.setDim(shapeInfo.Width, shapeInfo.Height);
+    pitch = ((shapeInfo.Width + 15) / 16) * 2;
   }
-  newCursorShape.setProperties(&dim, &pf);
+  else {
+    pitch = shapeInfo.Width * 4;
+  }
 
   if (shapeInfo.Pitch > pitch) {
-	  WinCursorShapeUtils::trimBuffer(&buffer, shapeInfo, pitch);
+    WinCursorShapeUtils::trimBuffer(&buffer, &shapeInfo);
+    pitch = shapeInfo.Pitch;
+    log->debug(_T("Trimmed CursorShapeInfo: Width: %d, Height: %d"), shapeInfo.Width, shapeInfo.Height);
+    log->debug(_T("Trimmed CursorShapeInfo: Pitch: %d"), shapeInfo.Pitch);
   } 
-  if (shapeInfo.Pitch < pitch) {
-	  throw Exception(_T("Invalid cursor data pitch."));
-  }
 
+  if (shapeInfo.Type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME) {
+    dim.setDim(shapeInfo.Width, shapeInfo.Height / 2);
+  }
+  else {
+    dim.setDim(shapeInfo.Width, shapeInfo.Height);
+  }
+  newCursorShape.setProperties(&dim, &pf);
+      
   // monochrome cursor
   if (shapeInfo.Type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME) {
     WinCursorShapeUtils::winMonoShapeToRfb(newCursorShape.getPixels(),

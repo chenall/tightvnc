@@ -57,7 +57,7 @@ public:
 
   // Throws WinDxException on an error.
   // Modifies cursorShape with new data.
-  void getFrameCursorShape(CursorShape *cursorShape, UINT pointerShapeBufferSize);
+  void getFrameCursorShape(CursorShape *cursorShape, UINT pointerShapeBufferSize, LogWriter *log);
 
 private:
   void copy(const WinDxgiOutputDuplication &src);

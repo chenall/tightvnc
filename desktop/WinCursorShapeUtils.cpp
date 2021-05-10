@@ -129,34 +129,46 @@ void WinCursorShapeUtils::inverse(char *bits, int count)
   }
 }
 
-void WinCursorShapeUtils::trimBuffer(std::vector<char> *buffer, DXGI_OUTDUPL_POINTER_SHAPE_INFO& shapeInfo, UINT newPitch)
+void WinCursorShapeUtils::trimBuffer(std::vector<char> *buffer, DXGI_OUTDUPL_POINTER_SHAPE_INFO *shapeInfo)
 {
+  UINT newPitch;
+  UINT oldPitch = shapeInfo->Pitch;
   trimTransparent(buffer, shapeInfo);
+  if (shapeInfo->Type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME) {
+    newPitch = ((shapeInfo->Width + 15) / 16) * 2;
+  }
+  else {
+    newPitch = shapeInfo->Width * 4;
+  }
 
-  if (newPitch >= shapeInfo.Pitch) {
+  if (newPitch >= oldPitch) {
     return;
   }
-  for (int i = 1; i < shapeInfo.Height; i++) {
-    memcpy(&buffer[i * newPitch], &buffer[i * shapeInfo.Pitch], newPitch);
+
+  for (int i = 1; i < shapeInfo->Height; i++) {
+    char * dst = &buffer->at(i * newPitch);
+    char * src = &buffer->at(i * oldPitch);
+    memcpy(dst, src, newPitch);
   }
+  shapeInfo->Pitch = newPitch;
 }
 
-void WinCursorShapeUtils::trimTransparent(std::vector<char> *buffer, DXGI_OUTDUPL_POINTER_SHAPE_INFO& shapeInfo)
+void WinCursorShapeUtils::trimTransparent(std::vector<char> *buffer, DXGI_OUTDUPL_POINTER_SHAPE_INFO  *shapeInfo)
 {
-  UINT pitch = shapeInfo.Pitch;
-  UINT height = getCursorHeight(shapeInfo);
-  UINT width = shapeInfo.Width;
-  UINT hotspotX = (UINT)(shapeInfo.HotSpot.x);
-  UINT type = shapeInfo.Type;
+  UINT pitch = shapeInfo->Pitch;
+  UINT height = getCursorHeight(*shapeInfo);
+  UINT width = shapeInfo->Width;
+  UINT hotspotX = (UINT)(shapeInfo->HotSpot.x);
+  UINT type = shapeInfo->Type;
 
   // width 
   const UINT minimumWidth = 16;
-	UINT trimmedWidth = minimumWidth - 1;
+	UINT trimmedWidth = minimumWidth;
 
 	for (UINT y = 0; y < height; ++y) {
 		for (UINT x = width - 1; x > trimmedWidth; --x) {
 			if (!isPixelTransparent(&buffer->front(), type, height, pitch, x, y)) {
-				trimmedWidth = x;
+				trimmedWidth = x + 1;
 			}
 		}
 	}
@@ -164,31 +176,31 @@ void WinCursorShapeUtils::trimTransparent(std::vector<char> *buffer, DXGI_OUTDUP
 	// Force to be on a 2-byte word boundary
 	trimmedWidth = ((trimmedWidth + 0xF) & ~0xF);
 
-	if (trimmedWidth < shapeInfo.Width) {
-		shapeInfo.Width = trimmedWidth;
+	if (trimmedWidth < shapeInfo->Width) {
+		shapeInfo->Width = trimmedWidth;
 	}
 
 	// height
-	UINT trimmedHeight = minimumWidth - 1;
+	UINT trimmedHeight = minimumWidth;
 
-	for (UINT x = 0; x < width; ++x) {
+  for (UINT x = 0; x < width; ++x) {
 		for (UINT y = height - 1; y > trimmedHeight; --y) {
 			if (!isPixelTransparent(&buffer->front(), type, height, pitch, x, y)) {
-				trimmedHeight = y;
+				trimmedHeight = y + 1;
 			}
 		}
 	}
 	if (trimmedHeight != height) {
 		if (type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME) {
-			shapeInfo.Height = (2 * trimmedHeight);
+			shapeInfo->Height = (2 * trimmedHeight);
 
 			// Shift the XOR mask
-			int oldXorOffset = height * pitch;
-			int newXorOffset = trimmedHeight * pitch;
-			memcpy(&buffer[newXorOffset], &buffer[oldXorOffset], newXorOffset);
+      char * dst = &buffer->at(trimmedHeight * pitch);
+      char * src = &buffer->at(height * pitch);
+			memcpy(dst, src, trimmedHeight * pitch);
 		}
 		else {
-			shapeInfo.Height = trimmedHeight;
+			shapeInfo->Height = trimmedHeight;
 		}
 	}
 }

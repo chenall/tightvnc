@@ -40,7 +40,17 @@ protected:
   virtual void onConfigReload(ServerConfig *serverConfig);
 
 private:
+  // Hides the desktop wallpaper.
+  // @throws SystemException on a fail.
+  void disableWallpaper();
+
+  // Restores the desktop wallpaper.
+  // @throws SystemException on a fail.
+  void restoreWallpaper();
+
   LogWriter *m_log;
+  StringStorage m_wallparerPath;
+  bool m_wasDisabled;
 };
 
 #endif // __WALLPAPERUTIL_H__

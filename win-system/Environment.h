@@ -81,13 +81,6 @@ public:
   // Returns true if success.
   static bool getComputerName(StringStorage *out);
 
-  // Restores the desktop wallpaper.
-  // @throws SystemException on a fail.
-  static void restoreWallpaper(LogWriter *log);
-  // Hides the desktop wallpaper.
-  // @throws SystemException on a fail.
-  static void disableWallpaper(LogWriter *log);
-
   // Returns true if run under a windows NT family
   static bool isWinNTFamily();
   // Returns true if run under windows XP

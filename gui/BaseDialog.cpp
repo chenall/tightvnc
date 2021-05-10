@@ -196,6 +196,9 @@ INT_PTR CALLBACK BaseDialog::dialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPA
   case WM_COMMAND:
     bResult =_this->onCommand(LOWORD(wParam), HIWORD(wParam));
     break;
+  case WM_CLOSE:
+    bResult = _this->onClose();
+    break;
   case WM_DESTROY:
     bResult = _this->onDestroy();
     break;
@@ -256,6 +259,11 @@ BOOL BaseDialog::onCommand(UINT controlID, UINT notificationID)
 }
 
 BOOL BaseDialog::onDestroy()
+{
+  return FALSE;
+}
+
+BOOL BaseDialog::onClose()
 {
   return FALSE;
 }

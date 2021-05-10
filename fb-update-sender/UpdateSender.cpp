@@ -361,7 +361,7 @@ void UpdateSender::sendUpdate()
   }
 
   // Checking for screen size changing
-  bool dimensionChanged = lastViewPortDim != Dimension(&viewPort) || updCont.screenSizeChanged;
+  bool dimensionChanged = lastViewPortDim != Dimension(&viewPort);
   if (dimensionChanged) {
     updCont.screenSizeChanged = true;
   }
@@ -372,18 +372,14 @@ void UpdateSender::sendUpdate()
     m_lastViewPortDim.setDim(&viewPort);
     lastViewPortDim = m_lastViewPortDim;
     if (encodeOptions.desktopSizeEnabled()) {
-      m_clientDim.setDim(&viewPort);
+      m_clientDim = m_lastViewPortDim;
       clientDim = m_clientDim;
-      m_updateKeeper->setBorderRect(&clientDim.getRect());
-      updCont.changedRegion.crop(&clientDim.getRect());
-      // Dazzle changedRegion
-      updCont.changedRegion.addRect(&clientDim.getRect());
-    } else {
-      m_updateKeeper->setBorderRect(&lastViewPortDim.getRect());
-      updCont.changedRegion.crop(&lastViewPortDim.getRect());
-      // Dazzle changedRegion
-      updCont.changedRegion.addRect(&lastViewPortDim.getRect());
-    }
+    } 
+    m_updateKeeper->setBorderRect(&lastViewPortDim.getRect());
+    updCont.changedRegion.crop(&lastViewPortDim.getRect());
+    // Dazzle changedRegion
+    updCont.changedRegion.addRect(&lastViewPortDim.getRect());
+    m_updateKeeper->dazzleChangedReg();
   }
 
   // Update pixel converter for effective pixel formats. We must do this
@@ -561,8 +557,7 @@ void UpdateSender::sendUpdate()
 
     if (numTotalRects != 0) {
       m_log->debug(_T("Sending FramebufferUpdate message header"));
-      // FIXME: Use constant for FramebufferUpdate message type.
-      m_output->writeUInt8(0); // message type
+      m_output->writeUInt8(ServerMsgDefs::FB_UPDATE); // message type
       m_output->writeUInt8(0); // padding
       m_output->writeUInt16((UINT16)numTotalRects);
 

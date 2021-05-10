@@ -46,6 +46,7 @@ LocalMutex WTS::m_mutex;
 DWORD WTS::getActiveConsoleSessionId(LogWriter *log)
 {
   AutoLock l(&m_mutex);
+  DWORD id;
 
   if (!m_initialized) {
     initialize(log);
@@ -54,8 +55,11 @@ DWORD WTS::getActiveConsoleSessionId(LogWriter *log)
   if (m_WTSGetActiveConsoleSessionId == 0) {
     return 0;
   }
+  id = m_WTSGetActiveConsoleSessionId();
 
-  return m_WTSGetActiveConsoleSessionId();
+  log->debug(_T("Active console session Id: %d"), id);
+
+  return id;
 }
 
 DWORD WTS::getRdpSessionId(LogWriter *log)
@@ -78,9 +82,11 @@ DWORD WTS::getRdpSessionId(LogWriter *log)
     for (DWORD i = 0; i < count; i++) {
       if (sessionInfo[i].State == WTSActive) {
         StringStorage sessionName(sessionInfo[i].pWinStationName);
+        log->debug(_T("Enumerate Sessions, Id: %d, Name: %s"), sessionInfo[i].SessionId, sessionName.getString());
         sessionName.toLowerCase();
         if (sessionName.find(_T("rdp")) != 0) {
           sessionId = (DWORD)sessionInfo[i].SessionId;
+          log->debug(_T("RDP Session selected, Id: %d"), sessionId);
         }
       }
     }
@@ -105,7 +111,7 @@ void WTS::queryConsoleUserToken(HANDLE *token, LogWriter *log) throw(SystemExcep
 
   if (m_WTSQueryUserToken != 0) {
     if (!m_WTSQueryUserToken(sessionId, token)) {
-	  throw SystemException(_T("WTSQueryUserToken error:"));
+	    throw SystemException(_T("WTSQueryUserToken error:"));
     }
   } else {
     if (m_userProcessToken == INVALID_HANDLE_VALUE) {

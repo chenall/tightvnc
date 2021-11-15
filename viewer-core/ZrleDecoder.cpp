@@ -48,10 +48,9 @@ void ZrleDecoder::decode(RfbInputGate *input,
 
   size_t unpackedDataSize = m_inflater.getOutputSize();
   if (unpackedDataSize == 0) {
-    m_logWriter->debug(_T("Empty unpacked data (zrle-decoder)"));
+    m_logWriter->debug(_T("Empty unpacked data in ZRLE decoder"));
     if (dstRect->area() != 0) {
-      m_logWriter->detail(_T("Corrupted data in zrle-decoder, rectangle is undefined."));
-      m_logWriter->detail(_T("Possible, data is corrupted or error in server"));
+      throw Exception(_T("Bad data received from the server: Empty unpacked data in ZRLE decoder."));
     }
     return;
   }
@@ -93,8 +92,13 @@ void ZrleDecoder::decode(RfbInputGate *input,
                     std::min(x + TILE_SIZE, dstRect->right),
                     std::min(y + TILE_SIZE, dstRect->bottom));
 
+      // FIXME: Check dstRect elsewhere on a higher level, once for all (non-pseudo) decoders,
+      //        and document that in the corresponding interface contract. Do not check here
+      //        or in other decoders. Also, placing this check in the tile loop is not necessary,
+      //        it was enough to check once in the beginning of the function. I do not change that
+      //        just to make sure I do not break anything. (-- const)
       if (!frameBuffer->getDimension().getRect().intersection(&tileRect).isEqualTo(&tileRect)) {
-        throw Exception(_T("Error in protocol: incorrect size of tile (zrle-decoder)"));
+        throw Exception(_T("Incorrect size of ZRLE tile."));
       }
       size_t tileLength = tileRect.area();
       size_t tileBytesLength = tileLength * m_bytesPerPixel;
@@ -120,7 +124,7 @@ void ZrleDecoder::decode(RfbInputGate *input,
       } if (type == 129) {
         // invalid type
         StringStorage error;
-        error.format(_T("Error: subencoding %d of Zrle encoding is unused"), type);
+        error.format(_T("Bad data received from the server: Unused ZRLE subencoding type (%d)."), type);
         throw Exception(error.getString());
       } if (type >= 130 && type <= 255) {
         // palette rle
@@ -267,20 +271,18 @@ void ZrleDecoder::readPlainRleTile(DataInputStream *input,
                                    const Rect *tileRect)
 {
   size_t tileLength = tileRect->area();
-  for (size_t indexPixel = 0; indexPixel < tileLength * m_bytesPerPixel;) {
+  for (size_t indexByte = 0; indexByte < tileLength * m_bytesPerPixel;) {
     char color[4] = {0, 0, 0, 0};
     input->readFully(color + m_numberFirstByte, m_bytesPerPixel);
 
     size_t runLength = readRunLength(input);
-    // TODO: refactor this
-    for(size_t i = 0; i < runLength; i++) {
-      // FIXME: add check this condition in all similar areas.
-      if (indexPixel + m_bytesPerPixel <= pixels.size()) {
-        memcpy(&pixels[indexPixel], color, m_bytesPerPixel);
-      } else {
-        throw Exception(_T("Corrupt protocol in Zrle-decoder (plain rle tile)."));
-      }
-      indexPixel += m_bytesPerPixel; 
+    if (indexByte + runLength * m_bytesPerPixel > pixels.size()) {
+      throw Exception(_T("Bad data received from the server: ZRLE run length is too long in plain RLE tile."));
+    }
+
+    for (size_t i = 0; i < runLength; i++) {
+      memcpy(&pixels[indexByte], color, m_bytesPerPixel);
+      indexByte += m_bytesPerPixel; 
     }
   }
 }
@@ -303,6 +305,9 @@ void ZrleDecoder::readPaletteRleTile(DataInputStream *input,
     if (color >= 128) {
       color -= 128;
       runLength = readRunLength(input);
+      if (indexPixel + runLength > tileLength) {
+        throw Exception(_T("Bad data received from the server: ZRLE run length is too long in palette RLE tile."));
+      }
     }
     
     char * pixelsPtr = &pixels[indexPixel * m_bytesPerPixel];

@@ -29,6 +29,7 @@
 TcpConnection::TcpConnection(LogWriter *logWriter)
 : m_logWriter(logWriter),
 m_socketOwner(false),
+m_bufInput(0),
 m_RfbGatesOwner(false)
 {
   m_port = 0;

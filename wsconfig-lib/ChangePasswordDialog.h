@@ -76,6 +76,7 @@ protected:
   // Tooltip
   BalloonTip m_passwordEmptyTooltip;
   BalloonTip m_passwordsNotMatchTooltip;
+  BalloonTip m_passwordWeakTooltip;
   // Helper members
   bool m_newPassword;
   bool m_allowEmptyPassword;

@@ -43,11 +43,15 @@ SessionChangesWatcher::~SessionChangesWatcher()
 void SessionChangesWatcher::execute()
 {
   DWORD prevSession = m_baseSessionId;
+  bool isRdp = WTS::SessionIsRdpSession(prevSession);
   StringStorage prevDeskName, currDeskName;
   DesktopSelector::getThreadDesktopName(&prevDeskName);
 
   while (!isTerminating()) {
-    DWORD currSessionId = WTS::getActiveConsoleSessionId(m_log);
+    DWORD currSessionId = prevSession;
+    if (!isRdp) {
+      currSessionId = WTS::getActiveConsoleSessionId(m_log);
+    }
     bool sessionChanged = prevSession != currSessionId;
     bool desktopInfoIsAvailable = DesktopSelector::getCurrentDesktopName(&currDeskName);
     bool desktopChanged = !currDeskName.isEqualTo(&prevDeskName);

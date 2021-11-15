@@ -35,6 +35,8 @@
 #include "UpdateKeeper.h"
 #include "UpdateListener.h"
 #include "Win8DuplicationListener.h"
+#include "Win8DeskDuplicationThread.h"
+
 
 class Win8ScreenDriverImpl : private GuiThread, private Win8DuplicationListener
 {
@@ -75,9 +77,11 @@ private:
   // This function always return the DX DXGI_FORMAT_B8G8R8A8_UNORM format in the PixelFormat type.
   PixelFormat getDxPixelFormat() const;
 
+  Win8DeskDuplication *m_duplication;
+
   LogWriter *m_log;
 
-  ThreadCollector m_deskDuplThreadBundle;
+  // ThreadCollector m_deskDuplThreadBundle;
 
   WindowsEvent m_initEvent;
   WindowsEvent m_errorEvent;

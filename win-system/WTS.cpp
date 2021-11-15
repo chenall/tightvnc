@@ -95,6 +95,31 @@ DWORD WTS::getRdpSessionId(LogWriter *log)
   return sessionId;
 }
 
+
+bool WTS::SessionIsRdpSession(DWORD sessionId)
+{
+  bool res = false;
+  if (m_WTSQuerySessionInformation == 0) {
+    return res;
+  }
+
+  LPWSTR *buffer;
+  DWORD byteCount(0);
+
+  if (m_WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE, sessionId,
+    WTSWinStationName, &buffer, &byteCount) == 0) {
+    return res;
+  }
+  StringStorage sessionName((TCHAR *)buffer);
+  sessionName.toLowerCase();
+  if (sessionName.find(_T("rdp")) != 0) {
+    res = true;
+  }
+  wtsFreeMemory(buffer);
+  return res;
+}
+
+
 void WTS::queryConsoleUserToken(HANDLE *token, LogWriter *log) throw(SystemException)
 {
   {

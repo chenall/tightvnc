@@ -97,9 +97,8 @@ void WinCursorShapeUtils::fixAlphaChannel(const FrameBuffer *pixels,
       UINT32 colorValue = *pixel & ~alphaMask;
       UINT32 alpha = (*pixel & alphaMask) >> alphaShift;
       bool transparent = (alpha < 128);
-      if (maskedColor && !transparent) {
-        *pixel = (alphaMask | ~colorValue);	  // Convert into opaque colour
-        transparent = (colorValue == 0);
+      if (maskedColor) {
+        transparent = !transparent;
       }
       if (transparent) {
         char *byteAnd = &maskAND[iRow * maskWidthInBytes + iCol / 8];

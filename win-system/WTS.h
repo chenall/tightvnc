@@ -91,6 +91,11 @@ public:
   static DWORD getRdpSessionId(LogWriter *log);
 
   /**
+  * returns true if sessionId is the RDP console session id.
+  */
+  static bool SessionIsRdpSession(DWORD sessionId);
+
+  /**
    * Queries user token in active console session.
    * @param token [out] output user token parameter.
    * @throws SystemException on fail.

@@ -30,7 +30,6 @@
 #include "win-system/Screen.h"
 
 #include "WinDxgiOutput.h"
-#include "Win8DeskDuplicationThread.h"
 
 // The header including of this cpp file must be at last place to avoid build conflicts.
 #include "Win8ScreenDriverImpl.h"
@@ -45,13 +44,34 @@ Win8ScreenDriverImpl::Win8ScreenDriverImpl(LogWriter *log, UpdateKeeper *updateK
   m_curTimeStamp(0),
   m_hasCriticalError(false),
   m_hasRecoverableError(false),
-  m_detectionEnabled(detectionEnabled)
+  m_detectionEnabled(detectionEnabled),
+  m_duplication(0)
 {
-  resume();
-  // Wait for DxInterface initialization
-  m_initEvent.waitForEvent();
+  m_log->debug(_T("Win8ScreenDriverImpl:: waiting for DXGI init"));
+
+  try {
+    initDxgi();
+  }
+  catch (WinDxRecoverableException &e) {
+    m_log->error(_T("Win8ScreenDriverImpl:: Catched WinDxRecoverableException: %s, (%x)"), e.getMessage(), (int)e.getErrorCode());
+    m_hasRecoverableError = true;
+  }
+  catch (WinDxCriticalException &e) {
+    m_log->error(_T("Win8ScreenDriverImpl:: Catched WinDxCriticalException: %s, (%x)"), e.getMessage(), (int)e.getErrorCode());
+    m_hasCriticalError = true;
+  }
+  catch (Exception &e) {
+    m_log->error(_T("Catched Exception in the Win8ScreenDriverImpl::initDxgi() function: %s.")
+      _T(" The exception will consider as critical"), e.getMessage());
+    m_hasCriticalError = true;
+  }
+
+  if (m_hasRecoverableError) {
+    m_log->debug(_T("Win8ScreenDriverImpl init recoverable error"));
+  }
 
   if (m_hasCriticalError) {
+    m_log->debug(_T("Win8ScreenDriverImpl init critical error"));
     terminate();
     wait();
     throw Exception(_T("Win8ScreenDriverImpl can't be successfully initialized"));
@@ -66,18 +86,22 @@ Win8ScreenDriverImpl::Win8ScreenDriverImpl(LogWriter *log, UpdateKeeper *updateK
     wait();
     throw Exception(_T("The builded screen dimension doesn't match to virtual screen dimension"));
   }
-
   // At this point the screen driver has valid screen properties.
+  resume();
 }
 
 Win8ScreenDriverImpl::~Win8ScreenDriverImpl()
 {
+
   terminateDetection();
   terminate();
   int activeResult = (int)isActive();
   int waitResult = (int)wait();
   m_log->debug(_T("Win8ScreenDriverImpl::activeResult = %d"), activeResult);
   m_log->debug(_T("Win8ScreenDriverImpl::waitResult = %d"), waitResult);
+  if (m_duplication) {
+    delete m_duplication;
+  }
 }
 
 void Win8ScreenDriverImpl::executeDetection()
@@ -88,8 +112,10 @@ void Win8ScreenDriverImpl::executeDetection()
 
 void Win8ScreenDriverImpl::terminateDetection()
 {
-  m_log->debug(_T("Destroy Win8DeskDuplicationThreads"));
-  m_deskDuplThreadBundle.destroyAllThreads();
+  m_log->debug(_T("Stop Win8DeskDuplication"));
+  if (m_duplication) {
+    m_duplication->terminate();
+  }
   m_detectionEnabled = false;
 }
 
@@ -144,7 +170,7 @@ void Win8ScreenDriverImpl::initDxgi()
   for (size_t iDxgiOutput  = 0; iDxgiOutput < dxgiOutputArray.size(); iDxgiOutput++) {
     deskCoordArray[iDxgiOutput].move(-virtDeskBoundRect.left, -virtDeskBoundRect.top);
   }
-  Thread *thread = new Win8DeskDuplicationThread(&m_frameBuffer,
+  m_duplication = new Win8DeskDuplication(&m_frameBuffer,
     deskCoordArray,
     &m_win8CursorShape,
     &m_curTimeStamp,
@@ -152,34 +178,12 @@ void Win8ScreenDriverImpl::initDxgi()
     this,
     dxgiOutputArray,
     m_log);
-  DWORD id = thread->getThreadId();
-  m_log->debug(_T("Created a new Win8DeskDuplicationThread with ID: (%d)"), id);
-  m_deskDuplThreadBundle.addThread(thread);
 }
 
 void Win8ScreenDriverImpl::execute()
 {
-  try {
-    initDxgi();
-    m_initEvent.notify();
-  } catch (WinDxRecoverableException &e) {
-    m_log->error(_T("Catched WinDxRecoverableException: %s, (%x)"), e.getMessage(), (int)e.getErrorCode());
-    m_hasRecoverableError = true;
-  } catch (WinDxCriticalException &e) {
+  m_duplication->execute();
 
-    m_log->error(_T("Catched WinDxCriticalException: %s, (%x)"), e.getMessage(), (int)e.getErrorCode());
-    m_hasCriticalError = true;
-  } catch (Exception &e) {
-    m_log->error(_T("Catched Exception in the Win8ScreenDriverImpl::execute() function: %s.")
-                 _T(" The exception will consider as critical") , e.getMessage());
-    m_hasCriticalError = true;
-  }
-
-  m_initEvent.notify();
-
-  while (!isTerminating() && isValid()) {
-    m_errorEvent.waitForEvent();
-  }
   if (!isValid()) {
     m_log->error(_T("Win8ScreenDriverImpl has an invalid state. The invalid state can be")
                  _T(" a part of screen propery changes. An update signal will be generated")

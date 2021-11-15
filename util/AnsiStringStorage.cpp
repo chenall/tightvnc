@@ -149,3 +149,11 @@ void AnsiStringStorage::appendString(const char *string)
 
   m_buffer.insert(to, fromFirst, fromLast);
 }
+
+bool AnsiStringStorage::checkAnsiConversion(StringStorage &string)
+{
+  AnsiStringStorage ansi(&string);
+  StringStorage check;
+  ansi.toStringStorage(&check);
+  return string.isEqualTo(&check);
+}

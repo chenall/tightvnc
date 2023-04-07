@@ -76,6 +76,13 @@ void WindowsDisplays::getDisplayCoordinates(unsigned char displayNumber,
   }
 }
 
+std::vector<Rect> WindowsDisplays::getDisplaysCoords()
+{
+  AutoLock al(&m_displayRectsMutex);
+  update();
+  return m_displayRects;
+}
+
 bool WindowsDisplays::isAlreadyUpdated()
 {
   if ((DateTime::now() - m_latestUpdateTime).getTime() > UPDATE_INTERVAL) {

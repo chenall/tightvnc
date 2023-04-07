@@ -1,4 +1,4 @@
-// Copyright (C) 2009,2010,2011,2012 GlavSoft LLC.
+// Copyright (C) 2011,2012 GlavSoft LLC.
 // All rights reserved.
 //
 //-------------------------------------------------------------------------
@@ -22,29 +22,16 @@
 //-------------------------------------------------------------------------
 //
 
-#include "CtrlAltDelSimulator.h"
-#include "thread/DesktopSelector.h"
+#ifndef _EXTENDED_DESKTOP_SIZE_DECODER_H_
+#define _EXTENDED_DESKTOP_SIZE_DECODER_H_
 
-CtrlAltDelSimulator::CtrlAltDelSimulator()
-{
-  resume();
-}
+#include "PseudoDecoder.h"
 
-CtrlAltDelSimulator::~CtrlAltDelSimulator()
+class ExtendedDesktopSizeDecoder : public PseudoDecoder
 {
-  terminate();
-  wait();
-}
+public:
+  ExtendedDesktopSizeDecoder(LogWriter *logWriter);
+  virtual ~ExtendedDesktopSizeDecoder();
+};
 
-void CtrlAltDelSimulator::execute()
-{
-  // Switch thread desktop to "Winlogon".
-  if (DesktopSelector::selectDesktop(&StringStorage(_T("Winlogon")))) {
-    HWND hwndCtrlAltDel = FindWindow(_T("SAS window class"), _T("SAS window"));
-    if (hwndCtrlAltDel == NULL) {
-      hwndCtrlAltDel = HWND_BROADCAST;
-    }
-    PostMessage(hwndCtrlAltDel, WM_HOTKEY, 0, MAKELONG(MOD_ALT | MOD_CONTROL, VK_DELETE));
-  }
-  // Do not restore previous desktop.
-}
+#endif

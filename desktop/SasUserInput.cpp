@@ -24,6 +24,7 @@
 
 #include "SasUserInput.h"
 #include "win-system/Environment.h"
+#include "win-system/WTS.h"
 
 #define XK_MISCELLANY
 #include "rfb/keysymdef.h"
@@ -47,7 +48,7 @@ void SasUserInput::sendInit(BlockingGate *gate)
   m_client->sendInit(gate);
 }
 
-void SasUserInput::setMouseEvent(const Point *newPos, UINT8 keyFlag)
+void SasUserInput::setMouseEvent(const Point newPos, UINT8 keyFlag)
 {
   m_client->setMouseEvent(newPos, keyFlag);
 }
@@ -77,10 +78,14 @@ void SasUserInput::setKeyboardEvent(UINT32 keySym, bool down)
   }
 
   if (m_ctrlPressed && m_altPressed && delPressed && m_underVista) {
-    Environment::simulateCtrlAltDelUnderVista(m_log);
-  } else {
-    m_client->setKeyboardEvent(keySym, down);
-  }
+    DWORD sessionId = WTS::getActiveConsoleSessionId(m_log);
+    bool isRdp = WTS::SessionIsRdpSession(sessionId, m_log);
+    if (!isRdp) {
+      Environment::simulateCtrlAltDelUnderVista(m_log);
+      return;
+    }
+  } 
+  m_client->setKeyboardEvent(keySym, down);
 }
 
 void SasUserInput::getCurrentUserInfo(StringStorage *desktopName,
@@ -92,6 +97,11 @@ void SasUserInput::getCurrentUserInfo(StringStorage *desktopName,
 void SasUserInput::getPrimaryDisplayCoords(Rect *rect)
 {
   m_client->getPrimaryDisplayCoords(rect);
+}
+
+std::vector<Rect> SasUserInput::getDisplaysCoords()
+{
+  return m_client->getDisplaysCoords();
 }
 
 void SasUserInput::getDisplayNumberCoords(Rect *rect,

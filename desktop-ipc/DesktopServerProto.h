@@ -67,7 +67,7 @@ protected:
                                 BlockingGate *gate);
   virtual void readNewClipboard(StringStorage *newClipboard,
                                 BlockingGate *gate);
-  virtual void sendNewPointerPos(const Point *newPos, UINT8 keyFlag,
+  virtual void sendNewPointerPos(const Point newPos, UINT8 keyFlag,
                                  BlockingGate *gate);
   virtual void readNewPointerPos(Point *newPos, UINT8 *keyFlag,
                                  BlockingGate *gate);
@@ -107,6 +107,7 @@ protected:
   static const UINT8 APPLICATION_REGION_REQ = 39;
   static const UINT8 NORMALIZE_RECT_REQ = 40;
   static const UINT8 APPLICATION_CHECK_FOCUS = 41;
+  static const UINT8 DISPLAYS_COORDS_REQ = 42;
 
   static const UINT8 CONFIG_RELOAD_REQ = 50;
   static const UINT8 SOFT_INPUT_ENABLING_REQ = 51;

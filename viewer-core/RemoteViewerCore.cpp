@@ -57,6 +57,7 @@
 #include "LastRectDecoder.h"
 #include "PointerPosDecoder.h"
 #include "RichCursorDecoder.h"
+#include "ExtendedDesktopSizeDecoder.h"
 
 #include <algorithm>
 
@@ -140,6 +141,7 @@ void RemoteViewerCore::init()
   m_decoderStore.addDecoder(new LastRectDecoder(&m_logWriter), -1);
   m_decoderStore.addDecoder(new PointerPosDecoder(&m_logWriter), -1);
   m_decoderStore.addDecoder(new RichCursorDecoder(&m_logWriter), -1);
+  m_decoderStore.addDecoder(new ExtendedDesktopSizeDecoder(&m_logWriter), -1);
   m_input = 0;
   m_output = 0;
 
@@ -380,7 +382,7 @@ void RemoteViewerCore::sendFbUpdateRequest(bool incremental)
 	} else {
 	  m_logWriter.debug(_T("Sending frame buffer full update request [%dx%d]..."),
 	                    updateRect.getWidth(), updateRect.getHeight());
-	}
+  }
 
 	RfbFramebufferUpdateRequestClientMessage fbUpdReq(isIncremental, updateRect);
 	fbUpdReq.send(m_output);
@@ -774,6 +776,10 @@ void RemoteViewerCore::initTunnelling()
       if (cap.code == TunnelDefs::NOTUNNEL) {
         hasNoTunnel = true;
       }
+      // Special case for VNC server of Siemense PLC . It supports NOTUNNEL while there is no it in the list.
+	  if (cap.IsEqual("SICR", "SCHANNEL")) {
+        hasNoTunnel = true;
+      }
     }
     if (hasNoTunnel) {
       m_output->writeUInt32(TunnelDefs::NOTUNNEL);
@@ -1115,6 +1121,30 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
     }
     break;
     
+  case PseudoEncDefs::EXTENDED_DESKTOP_SIZE:
+    {
+      m_logWriter.info(_T("got list of desktops"));
+      m_desktops.clear();
+      m_desktopSize = rect;
+      int num = m_input->readUInt8();
+      m_input->readUInt8(); // padding
+      m_input->readUInt16(); // padding
+      for (size_t i = 0; i < num; i++) {
+        Rect r;
+        int id = m_input->readUInt32(); // display ID 
+        r.left = m_input->readUInt16();
+        r.top = m_input->readUInt16();
+        r.setWidth(m_input->readUInt16());
+        r.setHeight(m_input->readUInt16());
+        m_input->readUInt32(); // flags
+        m_desktops.push_back(r);
+      }
+      {
+        AutoLock al(&m_fbLock);
+        setFbProperties(&Dimension(rect), &m_frameBuffer.getPixelFormat());
+      }
+      break;
+    }
   case PseudoEncDefs::RICH_CURSOR:
     {
       m_logWriter.detail(_T("New rich cursor"));
@@ -1505,4 +1535,14 @@ void RemoteViewerCore::sendEncodings()
 
   RfbSetEncodingsClientMessage encodingsMessage(&m_decoderStore.getDecoderIds());
   encodingsMessage.send(m_output);
+}
+
+std::vector<Rect> RemoteViewerCore::getDesktops()
+{
+  return m_desktops;
+}
+
+Rect RemoteViewerCore::getDesktopSize()
+{
+  return m_desktopSize;
 }

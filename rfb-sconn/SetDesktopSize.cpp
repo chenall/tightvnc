@@ -22,7 +22,7 @@
 //-------------------------------------------------------------------------
 //
 
-#include "EchoExtensionRequestHandler.h"
+#include "SetDesktopSize.h"
 #include "rfb/MsgDefs.h"
 #include "io-lib/DataOutputStream.h"
 
@@ -34,7 +34,7 @@
 #include "win-system/SystemException.h"
 #include "rfb/VendorDefs.h"
 
-EchoExtensionRequestHandler::EchoExtensionRequestHandler(RfbCodeRegistrator *registrator,
+SetDesktopSizeRequestHandler::SetDesktopSizeRequestHandler(RfbCodeRegistrator *registrator,
                                                        RfbOutputGate *output,
                                                        LogWriter *log,
                                                        bool enabled)
@@ -42,48 +42,55 @@ EchoExtensionRequestHandler::EchoExtensionRequestHandler(RfbCodeRegistrator *reg
   m_log(log)
 {
 
-  if (!isEchoExtensionEnabled()) {
+  if (!isSetDesktopSizeEnabled()) {
     return ;
   }
 
-  registrator->addClToSrvCap(ClientMsgDefs::ECHO_REQUEST, VendorDefs::TIGHTVNC, EchoExtensionDefs::ECHO_REQUEST_SIG);
+  registrator->addClToSrvCap(ClientMsgDefs::SET_DESKTOP_SIZE, VendorDefs::TIGHTVNC, SetDesktopSizeDefs::SET_DESKTOP_SIZE_SIG);
 
-  registrator->addSrvToClCap(ServerMsgDefs::ECHO_RESPONSE, VendorDefs::TIGHTVNC, EchoExtensionDefs::ECHO_RESPONSE_SIG);
+  registrator->regCode(ClientMsgDefs::SET_DESKTOP_SIZE, this);
 
-  registrator->regCode(ClientMsgDefs::ECHO_REQUEST, this);
-
-  m_log->message(_T("Echo extension request handler created"));
+  m_log->message(_T("SetDesktopSize request handler created"));
 }
 
-EchoExtensionRequestHandler::~EchoExtensionRequestHandler()
+SetDesktopSizeRequestHandler::~SetDesktopSizeRequestHandler()
 {
-  m_log->message(_T("Echo extension request handler deleted"));
+  m_log->message(_T("SetDesktopSize request handler deleted"));
 }
 
-void EchoExtensionRequestHandler::onRequest(UINT32 reqCode, RfbInputGate *backGate)
+void SetDesktopSizeRequestHandler::onRequest(UINT32 reqCode, RfbInputGate *backGate)
 {
   m_input = backGate;
 
   try {
-    if (reqCode == ClientMsgDefs::ECHO_REQUEST) {
-      UINT32 number = m_input->readUInt32();
-      m_log->debug(_T("got echo request with number %d"), number);
-      {
-        AutoLock l(m_output);
+    if (reqCode == ClientMsgDefs::SET_DESKTOP_SIZE) {
+      m_input->readUInt8(); // padding
+      UINT16 width = m_input->readUInt16();
+      UINT16 height = m_input->readUInt16();
+      UINT8 number = m_input->readUInt8(); // number-of-screens
+      m_input->readUInt8(); // padding
 
-        m_output->writeUInt32(ServerMsgDefs::ECHO_RESPONSE);
-        m_output->writeUInt32(number);
-        m_output->flush();
+      for (size_t i = 0; i < number; i++) {
+        UINT32 id = m_input->readUInt32();
+        UINT16 xpos = m_input->readUInt16();
+        UINT16 ypos = m_input->readUInt16();
+        UINT16 w = m_input->readUInt16();
+        UINT16 h = m_input->readUInt16();
+        UINT32 flags = m_input->readUInt32();
+      }
+      m_log->debug(_T("got SetDesktopSize request"));
+      {
+        // FIXME: force ExtendedDesktopSize rect send
       }
     }   
   } catch (Exception &someEx) {
-    m_log->error(_T("Echo extension request failed: \"%s\""), someEx.getMessage());
+    m_log->error(_T("SetDesktopSize extension request failed: \"%s\""), someEx.getMessage());
   } // try / catch.
 
   m_input = NULL;
 }
 
-bool EchoExtensionRequestHandler::isEchoExtensionEnabled()
+bool SetDesktopSizeRequestHandler::isSetDesktopSizeEnabled()
 {
   return m_enabled;
 }

@@ -463,7 +463,7 @@ void ControlApplication::checkServicePasswords()
   ServerConfig *config = Configurator::getInstance()->getServerConfig();
 
   bool askToChangeRfbAuth = !config->isUsingAuthentication() || !config->hasPrimaryPassword();
-  bool askToChangeAdmAuth = !config->isControlAuthEnabled() || !config->hasControlPassword();
+  bool askToChangeAdmAuth = false;
   SetPasswordsDialog dialog(askToChangeRfbAuth, askToChangeAdmAuth);
   if (dialog.showModal() == IDOK) {
     UINT8 cryptedPass[8];

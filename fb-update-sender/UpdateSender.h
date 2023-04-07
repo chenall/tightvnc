@@ -151,7 +151,7 @@ protected:
   void sendRectHeader(const Rect *rect, INT32 encodingType);
   void sendRectHeader(UINT16 x, UINT16 y, UINT16 w, UINT16 h,
                       INT32 encodingType);
-  void sendNewFBSize(Dimension *dim);
+  void sendNewFBSize(Dimension *dim, bool extended);
   void sendFbInClientDim(const EncodeOptions *encodeOptions,
                          const FrameBuffer *fb,
                          const Dimension *dim,

@@ -61,7 +61,7 @@ public:
   void setBorderRect(const Rect *borderRect);
 
   void setScreenSizeChanged();
-  void setCursorPosChanged(const Point *curPos);
+  void setCursorPosChanged();
   void setCursorPos(const Point *curPos);
   void setCursorShapeChanged();
 

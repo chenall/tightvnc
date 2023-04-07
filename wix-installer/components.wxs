@@ -50,7 +50,7 @@
       <?endif?>
 
       <Component Id='LicenseFileComponent' Guid='{66D70E32-FE2B-49ca-A64C-3CCDC7A7BF95}'>
-        <File Id='LicenseFile' Name='LICENSE.txt' Source='LICENSE.txt'
+        <File Id='LicenseFile' Name='LICENSE.txt' Source='$(var.SrcFolder)\LICENSE.txt'
               KeyPath='yes'>
         </File>
       </Component>

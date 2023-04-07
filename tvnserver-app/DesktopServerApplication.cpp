@@ -63,7 +63,8 @@ DesktopServerApplication::DesktopServerApplication(HINSTANCE appInstance,
 
   // Keep session id
   DWORD baseSessionId = WTS::getActiveConsoleSessionId(&m_log);
-  Configurator::getInstance()->addListener(this);
+  m_configurator.addListener(this);
+  m_configurator.load();
 
   try {
     // Transport initialization

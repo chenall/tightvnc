@@ -47,7 +47,7 @@ public:
   virtual void setNewClipboard(const StringStorage *newClipboard) = 0;
   // By the keyFlag argument will be set the mouse button state as described in
   // the rfb protocol.
-  virtual void setMouseEvent(const Point *newPos, UINT8 keyFlag) = 0;
+  virtual void setMouseEvent(const Point newPos, UINT8 keyFlag) = 0;
   virtual void setKeyboardEvent(UINT32 keySym, bool down) = 0;
   virtual void getCurrentUserInfo(StringStorage *desktopName,
                                   StringStorage *userName) = 0;
@@ -55,6 +55,7 @@ public:
   virtual void getPrimaryDisplayCoords(Rect *rect) = 0;
   virtual void getDisplayNumberCoords(Rect *rect,
                                       unsigned char dispNumber) = 0;
+  virtual std::vector<Rect> getDisplaysCoords() = 0;
   virtual void getNormalizedRect(Rect *rect) = 0;
 
   virtual void getWindowCoords(HWND hwnd, Rect *rect) = 0;

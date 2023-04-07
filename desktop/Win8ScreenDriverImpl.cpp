@@ -66,12 +66,18 @@ Win8ScreenDriverImpl::Win8ScreenDriverImpl(LogWriter *log, UpdateKeeper *updateK
     m_hasCriticalError = true;
   }
 
+  if (0 == m_duplication) {
+    m_hasCriticalError = true;
+  }
+
   if (m_hasRecoverableError) {
     m_log->debug(_T("Win8ScreenDriverImpl init recoverable error"));
   }
-
-  if (m_hasCriticalError) {
+  if (m_hasRecoverableError) {
     m_log->debug(_T("Win8ScreenDriverImpl init critical error"));
+  }
+
+  if (!isValid()) {
     terminate();
     wait();
     throw Exception(_T("Win8ScreenDriverImpl can't be successfully initialized"));
@@ -182,7 +188,10 @@ void Win8ScreenDriverImpl::initDxgi()
 
 void Win8ScreenDriverImpl::execute()
 {
-  m_duplication->execute();
+  //_ASSERT(m_duplication != 0);
+  if (m_duplication) {
+    m_duplication->execute();
+  }
 
   if (!isValid()) {
     m_log->error(_T("Win8ScreenDriverImpl has an invalid state. The invalid state can be")
@@ -222,7 +231,7 @@ void Win8ScreenDriverImpl::onCursorPositionChanged(int x, int y)
   Point newPos(x, y);
   if (!m_latestCursorPos.isEqualTo(&newPos)) {
     m_latestCursorPos = newPos;
-    m_updateKeeper->setCursorPosChanged(&newPos);
+    m_updateKeeper->setCursorPos(&newPos);
     m_updateListener->onUpdate();
   }
 }

@@ -60,7 +60,7 @@ void CursorPositionDetector::execute()
     curPoint = m_cursor.getCursorPos();
     if (!m_lastCursorPos.isEqualTo(&curPoint)) {
       m_lastCursorPos = curPoint;
-      m_updateKeeper->setCursorPosChanged(&m_lastCursorPos);
+      m_updateKeeper->setCursorPos(&m_lastCursorPos);
       doUpdate();
     }
     m_sleepTimer.waitForEvent(MOUSE_SLEEP_TIME);

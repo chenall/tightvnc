@@ -43,7 +43,7 @@ SessionChangesWatcher::~SessionChangesWatcher()
 void SessionChangesWatcher::execute()
 {
   DWORD prevSession = m_baseSessionId;
-  bool isRdp = WTS::SessionIsRdpSession(prevSession);
+  bool isRdp = WTS::SessionIsRdpSession(prevSession, m_log);
   StringStorage prevDeskName, currDeskName;
   DesktopSelector::getThreadDesktopName(&prevDeskName);
 

@@ -142,16 +142,16 @@ void UpdateKeeper::setScreenSizeChanged()
   m_updateContainer.screenSizeChanged = true;
 }
 
-void UpdateKeeper::setCursorPosChanged(const Point *curPos)
+void UpdateKeeper::setCursorPosChanged()
 {
   AutoLock al(&m_updContLocMut);
   m_updateContainer.cursorPosChanged = true;
-  m_updateContainer.cursorPos = *curPos;
 }
 
 void UpdateKeeper::setCursorPos(const Point *curPos)
 {
   AutoLock al(&m_updContLocMut);
+  m_updateContainer.cursorPosChanged = true;
   m_updateContainer.cursorPos = *curPos;
 }
 
@@ -188,7 +188,7 @@ void UpdateKeeper::addUpdateContainer(const UpdateContainer *updateContainer)
   }
   setCursorPos(&updateContainer->cursorPos);
   if (updateContainer->cursorPosChanged) {
-    setCursorPosChanged(&updateContainer->cursorPos);
+    setCursorPos(&updateContainer->cursorPos);
   }
   if (updateContainer->cursorShapeChanged) {
     setCursorShapeChanged();

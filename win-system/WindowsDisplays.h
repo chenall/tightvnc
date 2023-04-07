@@ -39,6 +39,8 @@ public:
   // If a display does not exist now the function return an empty rectangle.
   void getDisplayCoordinates(unsigned char displayNumber, Rect *rect);
 
+  std::vector<Rect> getDisplaysCoords();
+
   // Returns a vector that contain dispalys coordinates at the current time.
   std::vector<Rect> getDisplays();
 

@@ -57,6 +57,7 @@ protected:
   virtual void ansUserInfo(BlockingGate *backGate);
   virtual void ansWindowHandle(BlockingGate *backGate);
   virtual void ansDisplayNumberCoords(BlockingGate *backGate);
+  virtual void ansDisplaysCoords(BlockingGate *backGate);
   virtual void ansApplicationRegion(BlockingGate *backGate);
   virtual void ansApplicationInFocus(BlockingGate *backGate);
   virtual void ansNormalizeRect(BlockingGate *backGate);

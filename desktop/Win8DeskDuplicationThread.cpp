@@ -87,13 +87,12 @@ void Win8DeskDuplication::execute()
 			      Thread::yield();
 			      continue;
           }
-          int accum_frames = acquiredFrame.getFrameInfo()->AccumulatedFrames;
+          DXGI_OUTDUPL_FRAME_INFO *info = acquiredFrame.getFrameInfo(); 
+          int accum_frames = info->AccumulatedFrames;
           double dt = (double)(DateTime::now() - begins[i]).getTime(); // in milliseconds
-
           m_log->debug(_T("Acquire frame for output: %d for %f ms, accumulated %d frames"), i, dt + ACQUIRE_TIMEOUT * timeouts[i], accum_frames);
           timeouts[i] = 0;
           WinD3D11Texture2D acquiredDesktopImage(acquiredFrame.getDxgiResource());
-          DXGI_OUTDUPL_FRAME_INFO *info = acquiredFrame.getFrameInfo();
 
           // Get metadata
           if (info->TotalMetadataBufferSize) {
@@ -114,6 +113,7 @@ void Win8DeskDuplication::execute()
         Thread::yield();
       }
     }
+    // FIXME: remove it all, catch exceptions in Win8ScreenDriverImpl
   } catch (WinDxRecoverableException &e) {
     StringStorage errMess;
     errMess.format(_T("Win8DeskDuplication:: Catched WinDxRecoverableException: %s, (%x)"), e.getMessage(), (int)e.getErrorCode());

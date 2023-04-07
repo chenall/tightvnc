@@ -38,7 +38,6 @@ DesktopSrvDispatcher::DesktopSrvDispatcher(BlockingGate *gate,
 DesktopSrvDispatcher::~DesktopSrvDispatcher()
 {
   terminate();
-  resume();
   wait();
 }
 

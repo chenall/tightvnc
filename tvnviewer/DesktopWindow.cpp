@@ -94,9 +94,21 @@ bool DesktopWindow::onMessage(UINT message, WPARAM wParam, LPARAM lParam)
     case WM_DEADCHAR:
     case WM_SYSDEADCHAR:
       return onDeadChar(wParam, lParam);
+    case WM_CHANGECBCHAIN:
+      if ((HWND)wParam == m_hwndNextViewer) {
+        m_hwndNextViewer = (HWND)lParam;
+      } else if (m_hwndNextViewer != NULL) {
+        SendMessage(m_hwndNextViewer, message, wParam, lParam);
+      }
+      return true;
     case WM_DRAWCLIPBOARD:
-      return onDrawClipboard();
+    {
+      bool ok = onDrawClipboard();
+      SendMessage(m_hwndNextViewer, message, wParam, lParam);
+      return ok;
+    }
     case WM_CREATE:
+      m_hwndNextViewer = SetClipboardViewer((HWND)wParam);
       return onCreate(reinterpret_cast<LPCREATESTRUCT>(lParam));
     case WM_SIZE:
       return onSize(wParam, lParam);

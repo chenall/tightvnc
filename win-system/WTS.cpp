@@ -26,8 +26,10 @@
 
 #include "SystemException.h"
 #include "thread/AutoLock.h"
+#include "Environment.h"
 #include "PipeImpersonatedThread.h"
 #include <crtdbg.h>
+
 
 DynamicLibrary *WTS::m_kernel32Library = 0;
 DynamicLibrary *WTS::m_wtsapi32Library = 0;
@@ -96,8 +98,15 @@ DWORD WTS::getRdpSessionId(LogWriter *log)
 }
 
 
-bool WTS::SessionIsRdpSession(DWORD sessionId)
+bool WTS::SessionIsRdpSession(DWORD sessionId, LogWriter *log)
 {
+  {
+    AutoLock l(&m_mutex);
+
+    if (!m_initialized) {
+      initialize(log);
+    }
+  }
   bool res = false;
   if (m_WTSQuerySessionInformation == 0) {
     return res;
@@ -166,6 +175,38 @@ bool WTS::getCurrentUserName(StringStorage *userName, LogWriter *log)
   wtsFreeMemory(buffer);
 
   return true;
+}
+
+bool WTS::sessionIsLocked(DWORD sessionId)
+{
+#ifndef UNICODE
+  return false;
+#endif
+
+  if (m_WTSQuerySessionInformation == 0) {
+    return false;
+  }
+
+  PWTSINFOEXW buffer = 0;
+  DWORD byteCount;
+  if (m_WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE, sessionId,
+    WTSSessionInfoEx, (LPWSTR**)&buffer, &byteCount) == 0) {
+    return false;
+  }
+  if (buffer->Level == 1) {
+    WTSINFOEX_LEVEL1_W info = buffer->Data.WTSInfoExLevel1;
+	LONG locked = info.SessionFlags;
+    // reverse for Windows Server 2008 R2 and Windows 7
+	if (Environment::isWin7() && locked == WTS_SESSIONSTATE_UNLOCK) {
+		locked = WTS_SESSIONSTATE_LOCK;
+	}
+    if (locked == WTS_SESSIONSTATE_LOCK) {
+      wtsFreeMemory(buffer);
+      return true;
+    }
+  }
+  wtsFreeMemory(buffer);
+  return false;
 }
 
 void WTS::wtsFreeMemory(void *buffer)

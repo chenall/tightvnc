@@ -151,7 +151,6 @@
     <ClCompile Include="jcmaster.c" />
     <ClCompile Include="jcomapi.c" />
     <ClCompile Include="jcparam.c" />
-    <ClCompile Include="jcphuff.c" />
     <ClCompile Include="jcprepct.c" />
     <ClCompile Include="jcsample.c" />
     <ClCompile Include="jctrans.c" />
@@ -186,10 +185,8 @@
     <ClCompile Include="jutils.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="jchuff.h" />
     <ClInclude Include="jconfig.h" />
     <ClInclude Include="jdct.h" />
-    <ClInclude Include="jdhuff.h" />
     <ClInclude Include="jerror.h" />
     <ClInclude Include="jinclude.h" />
     <ClInclude Include="jmemsys.h" />

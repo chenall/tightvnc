@@ -45,9 +45,9 @@ void Impersonator::impersonateAsLoggedUser()
 
   if ((!DuplicateToken(m_token, SecurityImpersonation, &m_dupToken))) {
     throw SystemException(_T("could not DuplicateToken"));
-    if (!ImpersonateLoggedOnUser(m_dupToken)) {
-      throw SystemException(_T("could not ImpersonateLoggedOnUser"));
-    }
+  }
+  if (!ImpersonateLoggedOnUser(m_dupToken)) {
+    throw SystemException(_T("could not ImpersonateLoggedOnUser"));
   }
 }
 
@@ -67,4 +67,10 @@ void Impersonator::revertToSelf()
   if (!RevertToSelf()) {
     throw SystemException(_T("could not RevertToSelf"));
   }
+}
+
+bool Impersonator::sessionIsLocked()
+{
+  DWORD id = WTS::getActiveConsoleSessionId(m_log);
+  return WTS::sessionIsLocked(id);
 }

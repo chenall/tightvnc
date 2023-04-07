@@ -272,6 +272,7 @@
     <ClCompile Include="RfbDispatcher.cpp" />
     <ClCompile Include="RfbInitializer.cpp" />
     <ClCompile Include="RreEncoder.cpp" />
+    <ClCompile Include="SetDesktopSize.cpp" />
     <ClCompile Include="TightEncoder.cpp" />
     <ClCompile Include="TightPalette.cpp" />
     <ClCompile Include="ZrleEncoder.cpp" />
@@ -298,6 +299,7 @@
     <ClInclude Include="RfbDispatcherListener.h" />
     <ClInclude Include="RfbInitializer.h" />
     <ClInclude Include="RreEncoder.h" />
+    <ClInclude Include="SetDesktopSize.h" />
     <ClInclude Include="TightEncoder.h" />
     <ClInclude Include="TightPalette.h" />
     <ClInclude Include="ZrleEncoder.h" />

@@ -30,3 +30,5 @@ const char *const Utf8CutTextDefs::ENABLE_CUT_TEXT_UTF8_SIG = "UTF8CUTE";
 
 const char *const EchoExtensionDefs::ECHO_REQUEST_SIG = "ECHOCREQ";
 const char *const EchoExtensionDefs::ECHO_RESPONSE_SIG = "ECHOSRES";
+
+const char *const SetDesktopSizeDefs::SET_DESKTOP_SIZE_SIG = "SETDESKS";

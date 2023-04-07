@@ -685,6 +685,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ExtendedDesktopSizeDecoder.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\FbUpdateNotifier.cpp"
 				>
 			</File>
@@ -772,6 +776,10 @@
 			</File>
 			<File
 				RelativePath=".\DispatchDataProvider.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ExtendedDesktopSizeDecoder.h"
 				>
 			</File>
 			<File

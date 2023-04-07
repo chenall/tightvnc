@@ -91,6 +91,8 @@ public:
   static bool isWin2003Server();
   // Returns true if run under Windows Vista or later
   static bool isVistaOrLater();
+  // Returns true if run Windows7 or Win2008 R2 server.
+  static bool isWin7();
 
   // Simulates the "ctrl + alt + del" combination under WindowsXP.
   static void simulateCtrlAltDel(LogWriter *log);

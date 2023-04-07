@@ -193,19 +193,23 @@ bool WTS::sessionIsLocked(DWORD sessionId)
     WTSSessionInfoEx, (LPWSTR**)&buffer, &byteCount) == 0) {
     return false;
   }
-  if (buffer->Level == 1) {
-    WTSINFOEX_LEVEL1_W info = buffer->Data.WTSInfoExLevel1;
-	LONG locked = info.SessionFlags;
-    // reverse for Windows Server 2008 R2 and Windows 7
-	if (Environment::isWin7() && locked == WTS_SESSIONSTATE_UNLOCK) {
-		locked = WTS_SESSIONSTATE_LOCK;
-	}
-    if (locked == WTS_SESSIONSTATE_LOCK) {
-      wtsFreeMemory(buffer);
-      return true;
-    }
+  if (buffer->Level != 1) {
+    wtsFreeMemory(buffer);
+    return false;
   }
+  WTSINFOEX_LEVEL1_W info = buffer->Data.WTSInfoExLevel1;
+  LONG locked = info.SessionFlags;
   wtsFreeMemory(buffer);
+  // reverse for Windows Server 2008 R2 and Windows 7
+  if (Environment::isWin7()) {
+    if (locked == WTS_SESSIONSTATE_UNLOCK) {
+      return true;
+    } 
+	return false;
+  }
+  if (locked == WTS_SESSIONSTATE_LOCK) {
+    return true;
+  }
   return false;
 }
 

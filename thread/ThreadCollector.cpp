@@ -85,3 +85,8 @@ void ThreadCollector::destroyAllThreads()
 
   deleteDeadThreads();
 }
+
+const size_t ThreadCollector::Size()
+{
+  return m_threads.size();
+}

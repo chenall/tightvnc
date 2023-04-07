@@ -455,7 +455,7 @@ public:
 
   // returns list of server displays offsets and dimensions
   std::vector<Rect> getDesktops();
-  Rect getDesktopSize();
+  Dimension getDesktopSize();
 
 private:
   //
@@ -646,7 +646,7 @@ private:
 
   // list of server dispalys
   std::vector<Rect> m_desktops;
-  Rect m_desktopSize;
+  Dimension m_desktopSize;
 
   // Decoder work with this framebuffer. It is not actual frame buffer,
   // it only easy buffer, common to all decoders. In future this frame buffer 

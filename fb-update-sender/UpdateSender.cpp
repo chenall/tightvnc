@@ -76,12 +76,16 @@ UpdateSender::UpdateSender(RfbCodeRegistrator *codeRegtor,
   codeRegtor->addClToSrvCap(UpdSenderClientMsgDefs::RFB_VIDEO_FREEZE,
                             VendorDefs::TIGHTVNC,
                             UpdSenderClientMsgDefs::RFB_VIDEO_FREEZE_SIG);
+  codeRegtor->addClToSrvCap(ClientMsgDefs::SET_DESKTOP_SIZE, 
+							VendorDefs::TIGHTVNC, 
+							SetDesktopSizeDefs::SET_DESKTOP_SIZE_SIG);
 
   // Request codes
   codeRegtor->regCode(UpdSenderClientMsgDefs::RFB_VIDEO_FREEZE, this);
   codeRegtor->regCode(ClientMsgDefs::FB_UPDATE_REQUEST, this);
   codeRegtor->regCode(ClientMsgDefs::SET_PIXEL_FORMAT, this);
   codeRegtor->regCode(ClientMsgDefs::SET_ENCODINGS, this);
+  codeRegtor->regCode(ClientMsgDefs::SET_DESKTOP_SIZE, this);
 
   resume();
 }
@@ -113,6 +117,9 @@ void UpdateSender::onRequest(UINT32 reqCode, RfbInputGate *input)
     break;
   case UpdSenderClientMsgDefs::RFB_VIDEO_FREEZE:
     readVideoFreeze(input);
+    break;
+  case ClientMsgDefs::SET_DESKTOP_SIZE:
+    readSetDesktopSize(input);
     break;
   default:
     StringStorage errMess;
@@ -836,6 +843,39 @@ bool UpdateSender::getVideoFrozen()
 void UpdateSender::readVideoFreeze(RfbInputGate *io)
 {
   setVideoFrozen(io->readUInt8() != 0);
+}
+
+void UpdateSender::readSetDesktopSize(RfbInputGate *io)
+{
+  try {
+    io->readUInt8(); // padding
+    UINT16 width = io->readUInt16();
+    UINT16 height = io->readUInt16();
+    UINT8 number = io->readUInt8(); // number-of-screens
+    io->readUInt8(); // padding
+
+	  m_log->debug(_T("got SetDesktopSize request (w: %d, h: %d, number: %d) (client #%d)"),
+		  width, height, number, m_id);
+
+    for (size_t i = 0; i < number; i++) {
+      UINT32 id = io->readUInt32();
+      UINT16 xpos = io->readUInt16();
+      UINT16 ypos = io->readUInt16();
+      UINT16 w = io->readUInt16();
+      UINT16 h = io->readUInt16();
+      UINT32 flags = io->readUInt32();
+ 
+      m_log->debug(_T("SetDesktopSize screen (#: %d, id: %d, xpos: %d, ypos: %d, w: %d, h: %d, flags: %d) (client #%d)"),
+        i, id, xpos, ypos, w, h, flags, m_id);
+    }
+
+    {
+      // FIXME: force ExtendedDesktopSize rect send
+    }
+  } catch (Exception &someEx) {
+    m_log->error(_T("SetDesktopSize extension request failed: \"%s\""), someEx.getMessage());
+  } // try / catch.
+
 }
 
 bool UpdateSender::extractReqRegions(Region *incrReqReg,

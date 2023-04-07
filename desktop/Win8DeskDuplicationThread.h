@@ -35,7 +35,7 @@
 #include "WinCustomD3D11Texture2D.h"
 #include "WinDxgiOutputDuplication.h"
 
-class Win8DeskDuplication 
+class Win8DeskDuplication : public GuiThread
 {
 public:
   // The WinDxgiOutput *dxgiOutput passed object can be destroyed right after the constructor calling.
@@ -51,10 +51,12 @@ public:
   virtual ~Win8DeskDuplication();
 
   bool isValid();
-  virtual void execute();
-  virtual void terminate();
 
 private:
+  virtual void execute();
+  virtual void onTerminate();
+  void setCriticalError(const TCHAR *reason);
+  void setRecoverableError(const TCHAR *reason);
 
   void processMoveRects(size_t moveCount, size_t out);
   void processDirtyRects(size_t dirtyCount,
@@ -81,7 +83,11 @@ private:
   std::vector<WinDxgiOutput1> m_dxgiOutput1;
   std::vector<WinDxgiOutputDuplication> m_outDupl;
 
-  bool m_terminated;
+  // The duplication interface can't be used
+  bool m_hasCriticalError;
+  // The interface can be used but it should be reinitialized.
+  bool m_hasRecoverableError;
+
 
   // Use this variables as class fields to avoid frequency memory allocations.
   std::vector<RECT> m_dirtyRects;

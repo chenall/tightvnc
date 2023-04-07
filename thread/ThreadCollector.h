@@ -50,6 +50,8 @@ public:
   // delete them from memory and thread list.
   void destroyAllThreads();
 
+  const size_t Size();
+
 protected:
   virtual void execute();
 

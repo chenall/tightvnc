@@ -1125,7 +1125,7 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
     {
       m_logWriter.info(_T("got list of desktops"));
       m_desktops.clear();
-      m_desktopSize = rect;
+      m_desktopSize = Dimension(rect->getWidth(), rect->getHeight());
       int num = m_input->readUInt8();
       m_input->readUInt8(); // padding
       m_input->readUInt16(); // padding
@@ -1141,7 +1141,11 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
       }
       {
         AutoLock al(&m_fbLock);
-        setFbProperties(&Dimension(rect), &m_frameBuffer.getPixelFormat());
+        Dimension newDim = m_desktopSize;
+        Dimension oldDim = m_frameBuffer.getDimension();
+        if (newDim != oldDim) {
+          setFbProperties(&newDim, &m_frameBuffer.getPixelFormat());
+        }
       }
       break;
     }
@@ -1542,7 +1546,7 @@ std::vector<Rect> RemoteViewerCore::getDesktops()
   return m_desktops;
 }
 
-Rect RemoteViewerCore::getDesktopSize()
+Dimension RemoteViewerCore::getDesktopSize()
 {
   return m_desktopSize;
 }

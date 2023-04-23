@@ -36,6 +36,7 @@ Win8ScreenDriver::Win8ScreenDriver(UpdateKeeper *updateKeeper,
   m_updateListener(updateListener),
   m_detectionEnabled(false)
 {
+  m_log->debug(_T("Win8ScreenDriver creating new Win8ScreenDriverImpl"));
   AutoLock al(&m_drvImplMutex);
   m_drvImpl = new Win8ScreenDriverImpl(m_log, m_updateKeeper, m_fbLocalMutex, m_updateListener);
 }

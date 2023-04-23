@@ -32,9 +32,6 @@
     <ClCompile Include="jcdctmgr.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="jchuff.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="jcinit.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -51,9 +48,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="jcparam.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="jcphuff.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="jcprepct.c">
@@ -152,18 +146,15 @@
     <ClCompile Include="jutils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="jchuff.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="jchuff.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="jconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="jdct.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="jdhuff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="jerror.h">

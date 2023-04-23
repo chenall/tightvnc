@@ -98,6 +98,11 @@ void UpdateHandlerImpl::extract(UpdateContainer *updateContainer)
     if (m_screenDriver->getScreenSizeChanged() || !currentDimension.isEqualTo(&newDimension)) {
       updateContainer->screenSizeChanged = true;
     }
+    m_log->debug(_T("UpdateHandlerImpl::extract: old dims: (%d,%d), new dims: (%d,%d)"), 
+      currentDimension.width,
+      currentDimension.height,
+      newDimension.width,
+      newDimension.height);
     m_log->debug(_T("UpdateHandlerImpl::extract : applyNewScreenProperties()"));
     applyNewScreenProperties();
     {

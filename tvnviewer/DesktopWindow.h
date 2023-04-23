@@ -154,6 +154,7 @@ protected:
   // clipboard
   WinClipboard m_clipboard;
   StringStorage m_strClipboard;
+  HWND m_hwndNextViewer;
 
   bool m_ctrlDown;
   bool m_altDown;

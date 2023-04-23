@@ -45,6 +45,7 @@ UserInputServer::UserInputServer(BlockingGate *forwGate,
   dispatcher->registerNewHandle(WINDOW_COORDS_REQ, this);
   dispatcher->registerNewHandle(WINDOW_HANDLE_REQ, this);
   dispatcher->registerNewHandle(DISPLAY_NUMBER_COORDS_REQ, this);
+  dispatcher->registerNewHandle(DISPLAYS_COORDS_REQ, this);
   dispatcher->registerNewHandle(APPLICATION_REGION_REQ, this);
   dispatcher->registerNewHandle(APPLICATION_CHECK_FOCUS, this);
   dispatcher->registerNewHandle(NORMALIZE_RECT_REQ, this);
@@ -101,6 +102,9 @@ void UserInputServer::onRequest(UINT8 reqCode, BlockingGate *backGate)
   case DISPLAY_NUMBER_COORDS_REQ:
     ansDisplayNumberCoords(backGate);
     break;
+  case DISPLAYS_COORDS_REQ:
+    ansDisplaysCoords(backGate);
+    break;
   case APPLICATION_REGION_REQ:
     ansApplicationRegion(backGate);
     break;
@@ -133,7 +137,7 @@ void UserInputServer::applyNewPointerPos(BlockingGate *backGate)
   Point newPointerPos;
   UINT8 keyFlags;
   readNewPointerPos(&newPointerPos, &keyFlags, backGate);
-  m_userInput->setMouseEvent(&newPointerPos, keyFlags);
+  m_userInput->setMouseEvent(newPointerPos, keyFlags);
 }
 
 void UserInputServer::applyNewClipboard(BlockingGate *backGate)
@@ -195,6 +199,20 @@ void UserInputServer::ansDisplayNumberCoords(BlockingGate *backGate)
   Rect rect;
   m_userInput->getDisplayNumberCoords(&rect, dispNumber);
   sendRect(&rect, backGate);
+}
+
+void UserInputServer::ansDisplaysCoords(BlockingGate *backGate)
+{
+  std::vector<Rect> rects = m_userInput->getDisplaysCoords();
+  size_t number = rects.size();
+  if (number > 255) {
+    number = 255;
+  }
+  backGate->writeUInt8((UINT8)number);
+  for (size_t i = 0; i < number; i++) {
+    Rect rect = rects[i];
+    sendRect(&rect, backGate);
+  }
 }
 
 void UserInputServer::ansNormalizeRect(BlockingGate *backGate)

@@ -36,6 +36,8 @@ WindowsScreenGrabber::WindowsScreenGrabber(void)
 WindowsScreenGrabber::~WindowsScreenGrabber(void)
 {
   closeDIBSection();
+  terminate();
+  wait();
 }
 
 bool WindowsScreenGrabber::applyNewProperties()

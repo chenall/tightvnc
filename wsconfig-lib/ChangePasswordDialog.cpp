@@ -28,6 +28,7 @@
 #include "server-config-lib/ServerConfig.h"
 
 #include "util/VncPassCrypt.h"
+#include "util/AnsiStringStorage.h"
 
 ChangePasswordDialog::ChangePasswordDialog(Control *parent, bool isNewPassword)
 : BaseDialog(IDD_CHANGE_PASSWORD), m_allowEmptyPassword(false), m_newPassword(isNewPassword)
@@ -39,6 +40,9 @@ ChangePasswordDialog::ChangePasswordDialog(Control *parent, bool isNewPassword)
 
   m_passwordsNotMatchTooltip.setText(StringTable::getString(IDS_PASSWORDS_NOT_MATCH));
   m_passwordsNotMatchTooltip.setTitle(StringTable::getString(IDS_MBC_TVNCONTROL));
+
+  m_passwordWeakTooltip.setText(StringTable::getString(IDS_BAD_PASSWORD));
+  m_passwordWeakTooltip.setTitle(StringTable::getString(IDS_MBC_BAD_PASSWORD));
 }
 
 ChangePasswordDialog::~ChangePasswordDialog()
@@ -92,6 +96,12 @@ void ChangePasswordDialog::onOkButtonClick()
     m_password2.showBalloonTip(&m_passwordsNotMatchTooltip);
     m_password2.setFocus();
     return ;
+  }
+
+  if (!AnsiStringStorage::checkAnsiConversion(password1)) {
+    m_password1.showBalloonTip(&m_passwordWeakTooltip);
+    m_password1.setFocus();
+    return;
   }
 
   m_passwordText.setString(password1.getString());

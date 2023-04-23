@@ -54,6 +54,8 @@ public:
   */
   virtual void revertToSelf() throw(SystemException);
 
+  virtual bool sessionIsLocked();
+
 protected:
   HANDLE m_token;
   HANDLE m_dupToken;

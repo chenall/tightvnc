@@ -45,9 +45,9 @@ WindowsUserInput::~WindowsUserInput(void)
 }
 
 // FIXME: refactor this horror.
-void WindowsUserInput::setMouseEvent(const Point *newPos, UINT8 keyFlag)
+void WindowsUserInput::setMouseEvent(const Point newPos, UINT8 keyFlag)
 {
-
+	m_log->debug(_T("setMouseEvent (%d,%d):%d"), newPos.x, newPos.x, keyFlag);
   if (GetSystemMetrics(SM_SWAPBUTTON))
   {
     // read values of first and third bytes..
@@ -118,8 +118,8 @@ void WindowsUserInput::setMouseEvent(const Point *newPos, UINT8 keyFlag)
   UINT16 desktopHeight = GetSystemMetrics(SM_CYSCREEN);
   int fbOffsetX = GetSystemMetrics(SM_XVIRTUALSCREEN);
   int fbOffsetY = GetSystemMetrics(SM_YVIRTUALSCREEN);
-  INT32 x = (INT32)((newPos->x + fbOffsetX) * 65535 / (desktopWidth - 1));
-  INT32 y = (INT32)((newPos->y + fbOffsetY)* 65535 / (desktopHeight - 1));
+  INT32 x = (INT32)((newPos.x + fbOffsetX) * 65535 / (desktopWidth - 1));
+  INT32 y = (INT32)((newPos.y + fbOffsetY)* 65535 / (desktopHeight - 1));
 
   INPUT input;
   memset(&input, 0, sizeof(INPUT));
@@ -187,6 +187,11 @@ void WindowsUserInput::getDisplayNumberCoords(Rect *rect,
                                               unsigned char dispNumber)
 {
   m_winDisplays.getDisplayCoordinates(dispNumber, rect);
+}
+
+std::vector<Rect> WindowsUserInput::getDisplaysCoords()
+{
+  return m_winDisplays.getDisplaysCoords();
 }
 
 void WindowsUserInput::getNormalizedRect(Rect *rect)

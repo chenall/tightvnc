@@ -76,12 +76,16 @@ UpdateSender::UpdateSender(RfbCodeRegistrator *codeRegtor,
   codeRegtor->addClToSrvCap(UpdSenderClientMsgDefs::RFB_VIDEO_FREEZE,
                             VendorDefs::TIGHTVNC,
                             UpdSenderClientMsgDefs::RFB_VIDEO_FREEZE_SIG);
+  codeRegtor->addClToSrvCap(ClientMsgDefs::SET_DESKTOP_SIZE, 
+							VendorDefs::TIGHTVNC, 
+							SetDesktopSizeDefs::SET_DESKTOP_SIZE_SIG);
 
   // Request codes
   codeRegtor->regCode(UpdSenderClientMsgDefs::RFB_VIDEO_FREEZE, this);
   codeRegtor->regCode(ClientMsgDefs::FB_UPDATE_REQUEST, this);
   codeRegtor->regCode(ClientMsgDefs::SET_PIXEL_FORMAT, this);
   codeRegtor->regCode(ClientMsgDefs::SET_ENCODINGS, this);
+  codeRegtor->regCode(ClientMsgDefs::SET_DESKTOP_SIZE, this);
 
   resume();
 }
@@ -113,6 +117,9 @@ void UpdateSender::onRequest(UINT32 reqCode, RfbInputGate *input)
     break;
   case UpdSenderClientMsgDefs::RFB_VIDEO_FREEZE:
     readVideoFreeze(input);
+    break;
+  case ClientMsgDefs::SET_DESKTOP_SIZE:
+    readSetDesktopSize(input);
     break;
   default:
     StringStorage errMess;
@@ -200,7 +207,7 @@ void UpdateSender::sendRectHeader(UINT16 x, UINT16 y, UINT16 w, UINT16 h,
   m_output->writeInt32(encodingType);
 }
 
-void UpdateSender::sendNewFBSize(Dimension *dim)
+void UpdateSender::sendNewFBSize(Dimension *dim, bool extended)
 {
   // Header
   m_output->writeUInt8(ServerMsgDefs::FB_UPDATE); // message type
@@ -208,7 +215,34 @@ void UpdateSender::sendNewFBSize(Dimension *dim)
   m_output->writeUInt16(1); // one rectangle
 
   Rect r(dim->width, dim->height);
-  sendRectHeader(&r, PseudoEncDefs::DESKTOP_SIZE);
+  if (!extended) {
+    sendRectHeader(&r, PseudoEncDefs::DESKTOP_SIZE);
+  }
+  else {
+    std::vector<Rect> screens = m_desktop->getDisplaysCoords();
+    if (screens.size() > 255) {
+      screens.resize(255);
+    }
+    int reason = 0;
+    int status = 0;
+    r.left = reason;
+    r.top = status;
+    sendRectHeader(&r, PseudoEncDefs::EXTENDED_DESKTOP_SIZE);
+
+    m_output->writeUInt8((UINT8)screens.size()); // number-of-screens
+    m_output->writeUInt8(0); // padding
+    m_output->writeUInt16(0); // padding
+
+    for (size_t i = 0; i < screens.size(); i++) {
+      Rect rect = screens[i];
+      m_output->writeUInt32(i);
+      m_output->writeUInt16(rect.left);
+      m_output->writeUInt16(rect.top);
+      m_output->writeUInt16(rect.getWidth());
+      m_output->writeUInt16(rect.getHeight());
+      m_output->writeUInt32(0);
+    }
+  }
 }
 
 void UpdateSender::sendFbInClientDim(const EncodeOptions *encodeOptions,
@@ -354,7 +388,7 @@ void UpdateSender::sendUpdate()
 
   // If client does not support the desktop resizing then view port dimension
   // must be no more than client dimension.
-  if (!encodeOptions.desktopSizeEnabled()) {
+  if (!encodeOptions.desktopSizeEnabled() && !encodeOptions.extendedDesktopSizeEnabled()) {
     Rect clientRect = clientDim.getRect();
     clientRect.setLocation(viewPort.left, viewPort.top);
     viewPort = viewPort.intersection(&clientRect);
@@ -371,7 +405,7 @@ void UpdateSender::sendUpdate()
     AutoLock al(&m_viewPortMut);
     m_lastViewPortDim.setDim(&viewPort);
     lastViewPortDim = m_lastViewPortDim;
-    if (encodeOptions.desktopSizeEnabled()) {
+    if (encodeOptions.desktopSizeEnabled() || encodeOptions.extendedDesktopSizeEnabled()) {
       m_clientDim = m_lastViewPortDim;
       clientDim = m_clientDim;
     } 
@@ -380,6 +414,8 @@ void UpdateSender::sendUpdate()
     // Dazzle changedRegion
     updCont.changedRegion.addRect(&lastViewPortDim.getRect());
     m_updateKeeper->dazzleChangedReg();
+	m_updateKeeper->setCursorPosChanged();
+	m_updateKeeper->setCursorShapeChanged();
   }
 
   // Update pixel converter for effective pixel formats. We must do this
@@ -400,12 +436,13 @@ void UpdateSender::sendUpdate()
 
   // Send updates
   if (updCont.screenSizeChanged || (!requestedFullReg.isEmpty() &&
-                                    !encodeOptions.desktopSizeEnabled())) {
+                                    !encodeOptions.desktopSizeEnabled() && 
+                                    !encodeOptions.extendedDesktopSizeEnabled())) {
     m_log->debug(_T("Screen size changed or full region requested"));
-    if (encodeOptions.desktopSizeEnabled()) {
+    if (encodeOptions.desktopSizeEnabled() || encodeOptions.extendedDesktopSizeEnabled()) {
       m_log->debug(_T("Desktop resize is enabled, sending NewFBSize %dx%d"),
                  lastViewPortDim.width, lastViewPortDim.height);
-      sendNewFBSize(&lastViewPortDim);
+      sendNewFBSize(&lastViewPortDim, encodeOptions.extendedDesktopSizeEnabled());
     } else {
       m_log->debug(_T("Desktop resize is disabled, sending blank screen"));
       sendFbInClientDim(&encodeOptions, frameBuffer, &clientDim,
@@ -414,6 +451,7 @@ void UpdateSender::sendUpdate()
     // FIXME: "Dazzle" does not seem like a good word here.
     m_log->debug(_T("Dazzle changed region"));
     m_updateKeeper->dazzleChangedReg();
+	m_updateKeeper->setCursorPosChanged();
   } else {
     m_log->debug(_T("Processing normal updates"));
     CursorShape cursorShape;
@@ -807,6 +845,39 @@ void UpdateSender::readVideoFreeze(RfbInputGate *io)
   setVideoFrozen(io->readUInt8() != 0);
 }
 
+void UpdateSender::readSetDesktopSize(RfbInputGate *io)
+{
+  try {
+    io->readUInt8(); // padding
+    UINT16 width = io->readUInt16();
+    UINT16 height = io->readUInt16();
+    UINT8 number = io->readUInt8(); // number-of-screens
+    io->readUInt8(); // padding
+
+	  m_log->debug(_T("got SetDesktopSize request (w: %d, h: %d, number: %d) (client #%d)"),
+		  width, height, number, m_id);
+
+    for (size_t i = 0; i < number; i++) {
+      UINT32 id = io->readUInt32();
+      UINT16 xpos = io->readUInt16();
+      UINT16 ypos = io->readUInt16();
+      UINT16 w = io->readUInt16();
+      UINT16 h = io->readUInt16();
+      UINT32 flags = io->readUInt32();
+ 
+      m_log->debug(_T("SetDesktopSize screen (#: %d, id: %d, xpos: %d, ypos: %d, w: %d, h: %d, flags: %d) (client #%d)"),
+        i, id, xpos, ypos, w, h, flags, m_id);
+    }
+
+    {
+      // FIXME: force ExtendedDesktopSize rect send
+    }
+  } catch (Exception &someEx) {
+    m_log->error(_T("SetDesktopSize extension request failed: \"%s\""), someEx.getMessage());
+  } // try / catch.
+
+}
+
 bool UpdateSender::extractReqRegions(Region *incrReqReg,
                                      Region *fullReqReg,
                                      bool *incrUpdIsReq,
@@ -978,7 +1049,7 @@ Region UpdateSender::takePartFromRegion(Region *reg, int area)
 int UpdateSender::calcAreas(std::vector<Rect> rects)
 {
   int sum = 0;
-  for (int i = 0; i < rects.size(); i++) {
+  for (size_t i = 0; i < rects.size(); i++) {
     sum += rects[i].area();
   }
   return sum;

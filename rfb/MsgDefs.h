@@ -37,6 +37,7 @@ public:
   static const UINT32 KEYBOARD_EVENT = 4;
   static const UINT32 POINTER_EVENT = 5;
   static const UINT32 CLIENT_CUT_TEXT = 6;
+  static const UINT32 SET_DESKTOP_SIZE = 251;
   static const UINT32 CLIENT_CUT_TEXT_UTF8 = 0xFC000200;
   static const UINT32 ENABLE_CUT_TEXT_UTF8 = 0xFC000201;
   static const UINT32 ECHO_REQUEST = 0xFC000300;
@@ -65,5 +66,10 @@ class EchoExtensionDefs
 public:
   static const char *const ECHO_REQUEST_SIG;
   static const char *const ECHO_RESPONSE_SIG;
+};
+class SetDesktopSizeDefs
+{
+public:
+  static const char *const SET_DESKTOP_SIZE_SIG;
 };
 #endif // __RFB_MSG_DEFS_H_INCLUDED__

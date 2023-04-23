@@ -37,6 +37,11 @@ HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper,
   m_hookInstaller(0),
   m_log(log)
 {
+#ifndef _WIN64
+  m_log->debug(_T("Loading the screenhook library for 32bit system"));
+#else
+  m_log->debug(_T("Loading the screenhook library for 64bit system"));
+#endif
   try {
     m_hookInstaller = new HookInstaller();
   } catch (Exception &e) {
@@ -45,7 +50,7 @@ HooksUpdateDetector::HooksUpdateDetector(UpdateKeeper *updateKeeper,
   }
   HINSTANCE hinst = GetModuleHandle(0);
   m_targetWin = new MessageWindow(hinst,
-    HookDefinitions::HOOK_TARGET_WIN_CLASS_NAME);
+  HookDefinitions::HOOK_TARGET_WIN_CLASS_NAME);
 }
 
 HooksUpdateDetector::~HooksUpdateDetector()
@@ -72,6 +77,7 @@ void HooksUpdateDetector::onTerminate()
 void HooksUpdateDetector::start32Loader()
 {
 #ifdef _WIN64
+  m_log->debug(_T("Loading the screenhook library for 32bit system with hookldr.exe"));
   if (!isTerminating()) {
     StringStorage path, folder;
     Environment::getCurrentModuleFolderPath(&folder);
@@ -160,6 +166,7 @@ void HooksUpdateDetector::execute()
           m_updateKeeper->addChangedRect(&rect);
           m_updateTimer.sear();
         }
+//        m_log->debug(_T("Screenhook update rectangle: {x=%d, y=%d, w=%d, h=%d}"), rect.left, rect.top, rect.getWidth(), rect.getHeight());
       } else {
         DispatchMessage(&msg);
       }

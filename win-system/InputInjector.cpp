@@ -41,7 +41,13 @@ InputInjector::InputInjector(bool ctrlAltDelEnabled, LogWriter *log)
   // FIXME: Better to call this function from an owner (Now, its
   // possible only from trunk code because in the stable hive the owner is
   // the deprecated KeyEvent class)
-  resetModifiers();
+  try {
+    resetModifiers();
+  }
+  catch (Exception &e) {
+    m_log->error(_T("InputInjector: error occurred while reseting modifiers: %s"),
+      e.getMessage());
+  }
 }
 
 InputInjector::~InputInjector()
@@ -112,7 +118,12 @@ void InputInjector::injectKeyEvent(BYTE vkCode, bool release, bool extended)
       !m_winIsPressed && !m_shiftIsPressed) {
     if (m_ctrlAltDelEnabled) {
       m_log->debug(_T("Try simulate the Ctrl+Alt+Del combination"));
-      Environment::simulateCtrlAltDel(m_log);
+      if (Environment::isVistaOrLater()) {
+        Environment::simulateCtrlAltDelUnderVista(m_log);
+      }
+      else {
+        Environment::simulateCtrlAltDel(m_log);
+      }
     } else {
       m_log->debug(_T("The Ctrl+Alt+Del combination is disabled. Ignore the Del key pressing"));
     }
@@ -134,7 +145,7 @@ void InputInjector::injectKeyEvent(BYTE vkCode, bool release, bool extended)
     if (SendInput(1, &keyEvent, sizeof(keyEvent)) == 0) {
       DWORD errCode = GetLastError();
       if (errCode != ERROR_SUCCESS) {
-        throw SystemException(errCode);
+        throw SystemException(_T("SendInput() function failed:"), errCode);
       } else {
         // Under Vista or later the SendInput() function doesn't return error
         // code if inputs blocked by UIPI.
@@ -302,6 +313,15 @@ SHORT InputInjector::searchVirtKey(WCHAR ch, HKL hklCurrent)
     const unsigned short TURKISH = MAKELANGID(LANG_TURKISH, SUBLANG_DEFAULT);
     const unsigned short NORWEGIAN = MAKELANGID(LANG_NORWEGIAN, SUBLANG_DEFAULT);
     const unsigned short BRAZILIAN = MAKELANGID(LANG_PORTUGUESE, SUBLANG_PORTUGUESE_BRAZILIAN);
+    const unsigned short GREEK = MAKELANGID(LANG_GREEK, SUBLANG_DEFAULT);
+    const unsigned short POLISH1 = MAKELANGID(LANG_POLISH, SUBLANG_DEFAULT);
+    const unsigned short POLISH2 = MAKELANGID(LANG_POLISH, SUBLANG_POLISH_POLAND);
+
+    if ((layout == POLISH1 || layout == POLISH2) && ch == _T('`')) {
+      throw Exception(_T("Special case for the '`' character on the POLISH")
+        _T(" keyboard, it will be inserted as")
+        _T(" an unicode"));
+    }
 
     if (layout == 0xf001 && ch == _T('6')) {
       throw Exception(_T("Special case for the '6' character on the USA")
@@ -320,6 +340,11 @@ SHORT InputInjector::searchVirtKey(WCHAR ch, HKL hklCurrent)
     }
     if (layout == TURKISH && ch == _T('3')) {
       throw Exception(_T("Special case for the '3' character on the turkish-Q")
+        _T(" keyboard, it will be inserted as")
+        _T(" an unicode"));
+    }
+    if (layout == GREEK && ch == 0x03c2) {
+      throw Exception(_T("Special case for the 'w' character on the greek")
         _T(" keyboard, it will be inserted as")
         _T(" an unicode"));
     }

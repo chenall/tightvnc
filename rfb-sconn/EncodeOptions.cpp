@@ -50,6 +50,7 @@ void EncodeOptions::reset()
   m_enableRichCursor = false;
   m_enablePointerPos = false;
   m_enableDesktopSize = false;
+  m_enableExtendedDesktopSize = false;
 }
 
 void EncodeOptions::setEncodings(std::vector<int> *list)
@@ -81,6 +82,8 @@ void EncodeOptions::setEncodings(std::vector<int> *list)
       m_enablePointerPos = true;
     } else if (code == PseudoEncDefs::DESKTOP_SIZE) {
       m_enableDesktopSize = true;
+    } else if (code == PseudoEncDefs::EXTENDED_DESKTOP_SIZE) {
+      m_enableExtendedDesktopSize = true;
     } else if (code >= PseudoEncDefs::COMPR_LEVEL_0 &&
                code <= PseudoEncDefs::COMPR_LEVEL_9) {
       int level = code - PseudoEncDefs::COMPR_LEVEL_0;
@@ -154,6 +157,11 @@ bool EncodeOptions::pointerPosEnabled() const
 bool EncodeOptions::desktopSizeEnabled() const
 {
   return m_enableDesktopSize;
+}
+
+bool EncodeOptions::extendedDesktopSizeEnabled() const
+{
+  return m_enableExtendedDesktopSize;
 }
 
 bool EncodeOptions::normalEncoding(int code)

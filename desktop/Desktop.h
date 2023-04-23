@@ -31,6 +31,7 @@
 #include "rfb/PixelFormat.h"
 #include "rfb/FrameBuffer.h"
 #include "fb-update-sender/UpdateRequestListener.h"
+#include <vector>
 
 // This class is a public interface to a desktop.
 class Desktop : public UpdateRequestListener
@@ -51,6 +52,7 @@ public:
   virtual void getNormalizedRect(Rect *rect) = 0;
   virtual void getDisplayNumberCoords(Rect *rect,
                                       unsigned char dispNumber) = 0;
+  virtual std::vector<Rect> getDisplaysCoords() = 0;
   virtual void getWindowCoords(HWND hwnd, Rect *rect) = 0;
   virtual HWND getWindowHandleByName(const StringStorage *windowName) = 0;
 

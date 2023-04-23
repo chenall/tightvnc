@@ -91,10 +91,26 @@ void DesktopBaseImpl::getDisplayNumberCoords(Rect *rect,
   try {
     m_userInput->getDisplayNumberCoords(rect, dispNumber);
   } catch (Exception &e) {
-	m_log->error(_T("Exception in DesktopBaseImpl::getDisplayNumberCoords: %s"), e.getMessage());
+  	m_log->error(_T("Exception in DesktopBaseImpl::getDisplayNumberCoords: %s"), e.getMessage());
     m_extDeskTermListener->onAbnormalDesktopTerminate();
   }
 }
+
+std::vector<Rect> DesktopBaseImpl::getDisplaysCoords()
+{
+  _ASSERT(m_userInput != 0);
+  _ASSERT(m_extDeskTermListener != 0);
+  m_log->info(_T("get the displays coordinates"));
+  try {
+    return m_userInput->getDisplaysCoords();
+  }
+  catch (Exception &e) {
+    m_log->error(_T("Exception in DesktopBaseImpl::getDisplayCoords: %s"), e.getMessage());
+    m_extDeskTermListener->onAbnormalDesktopTerminate();
+  }
+  return std::vector<Rect>();
+}
+
 
 void DesktopBaseImpl::getNormalizedRect(Rect *rect)
 {
@@ -199,7 +215,7 @@ void DesktopBaseImpl::setMouseEvent(UINT16 x, UINT16 y, UINT8 buttonMask)
   Point point(x, y);
   try {
     if (isRemoteInputAllowed()) {
-      m_userInput->setMouseEvent(&point, buttonMask);
+      m_userInput->setMouseEvent(point, buttonMask);
     }
   } catch (Exception &e) {
 	m_log->error(_T("Exception in DesktopBaseImpl::setMouseEvent %s"), e.getMessage());

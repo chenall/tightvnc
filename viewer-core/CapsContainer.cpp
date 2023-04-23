@@ -129,3 +129,18 @@ bool CapsContainer::isKnown(UINT32 code) const
 {
   return (descMap.find(code) != descMap.end());
 }
+
+bool RfbCapabilityInfo::IsEqual(const char *vendor, const char *signature)
+{
+    static const size_t vendorSigSize = 4;
+    static const size_t nameSigSize = 8;
+    for (int i = 0; i < vendorSigSize; i++ ) {
+	    if (vendorSignature[i] != vendor[i])
+		    return false;
+    }
+    for (int i = 0; i < nameSigSize; i++ ) {
+	    if (nameSignature[i] != signature[i])
+		    return false;
+    }
+    return true;
+}

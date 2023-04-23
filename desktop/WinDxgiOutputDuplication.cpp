@@ -138,7 +138,7 @@ size_t WinDxgiOutputDuplication::getFrameDirtyRects(std::vector<RECT> *dirtyRect
 
 void WinDxgiOutputDuplication::getFrameCursorShape(CursorShape *cursorShape, UINT pointerShapeBufferSize, LogWriter *log)
 {
-  log->debug(_T("%d"), pointerShapeBufferSize);
+  //log->debug(_T("%d"), pointerShapeBufferSize);
   // This function can calculate required buffer size by self but the size is already known.
   if (pointerShapeBufferSize == 0) {
 	  cursorShape->resetToEmpty();
@@ -207,8 +207,9 @@ void WinDxgiOutputDuplication::getFrameCursorShape(CursorShape *cursorShape, UIN
   }
   memcpy(newCursorShape.getPixels()->getBuffer(), &buffer.front(), shapeSize);
   int maskPitch = ((dim.width + 15) / 16 ) * 2;
-  std::vector<char> mask(maskPitch * dim.height, 0xff);
+  std::vector<char> mask(maskPitch * dim.height, 0x00);
   bool maskedColor = shapeInfo.Type == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MASKED_COLOR;
+  WinCursorShapeUtils::winColorShapeToRfb<UINT32>(newCursorShape.getPixels(), &mask.front(), maskPitch);
   WinCursorShapeUtils::fixAlphaChannel(newCursorShape.getPixels(), &mask.front(), maskedColor, maskPitch);
   newCursorShape.assignMaskFromWindows(&mask.front()); // assumes width is aligned to 2 bytes
   cursorShape->clone(&newCursorShape);

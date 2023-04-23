@@ -225,12 +225,12 @@ void DesktopServerProto::readNewClipboard(StringStorage *newClipboard,
   gate->readUTF8(newClipboard);
 }
 
-void DesktopServerProto::sendNewPointerPos(const Point *newPos, UINT8 keyFlag,
+void DesktopServerProto::sendNewPointerPos(const Point newPos, UINT8 keyFlag,
                                            BlockingGate *gate)
 {
   // Send pointer position
-  gate->writeUInt16(newPos->x);
-  gate->writeUInt16(newPos->y);
+  gate->writeUInt16(newPos.x);
+  gate->writeUInt16(newPos.y);
   // Send key flags
   gate->writeUInt8(keyFlag);
 }

@@ -48,7 +48,6 @@ void ClientLogger::freeResources()
 {
   if (m_levListenChan != 0) m_levListenChan->close();
   terminate();
-  resume();
   wait();
   if (m_levListenChan != 0) delete m_levListenChan;
 

@@ -38,13 +38,14 @@ public:
 
   virtual void sendInit(BlockingGate *gate);
   virtual void setNewClipboard(const StringStorage *newClipboard);
-  virtual void setMouseEvent(const Point *newPos, UINT8 keyFlag);
+  virtual void setMouseEvent(const Point newPos, UINT8 keyFlag);
   virtual void setKeyboardEvent(UINT32 keySym, bool down);
   virtual void getCurrentUserInfo(StringStorage *desktopName,
                                   StringStorage *userName);
   virtual void getPrimaryDisplayCoords(Rect *rect);
   virtual void getDisplayNumberCoords(Rect *rect,
                                       unsigned char dispNumber);
+  virtual std::vector<Rect> getDisplaysCoords();
   virtual void getNormalizedRect(Rect *rect);
   virtual void getWindowCoords(HWND hwnd, Rect *rect);
   virtual HWND getWindowHandleByName(const StringStorage *windowName);

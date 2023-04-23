@@ -337,10 +337,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\jcphuff.c"
-				>
-			</File>
-			<File
 				RelativePath=".\jcprepct.c"
 				>
 			</File>
@@ -475,19 +471,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\jchuff.h"
-				>
-			</File>
-			<File
 				RelativePath=".\jconfig.h"
 				>
 			</File>
 			<File
 				RelativePath=".\jdct.h"
-				>
-			</File>
-			<File
-				RelativePath=".\jdhuff.h"
 				>
 			</File>
 			<File

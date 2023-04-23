@@ -91,6 +91,11 @@ public:
   static DWORD getRdpSessionId(LogWriter *log);
 
   /**
+  * returns true if sessionId is the RDP console session id.
+  */
+  static bool SessionIsRdpSession(DWORD sessionId, LogWriter *log);
+
+  /**
    * Queries user token in active console session.
    * @param token [out] output user token parameter.
    * @throws SystemException on fail.
@@ -115,6 +120,8 @@ public:
   static void duplicatePipeClientToken(HANDLE pipeHandle);
 
   static bool getCurrentUserName(StringStorage *userName, LogWriter *log);
+
+  static bool sessionIsLocked(DWORD sessionId);
 
 private:
   /**

@@ -35,6 +35,8 @@
 #include "UpdateKeeper.h"
 #include "UpdateListener.h"
 #include "Win8DuplicationListener.h"
+#include "Win8DeskDuplicationThread.h"
+
 
 class Win8ScreenDriverImpl : private GuiThread, private Win8DuplicationListener
 {

@@ -22,8 +22,8 @@
 //-------------------------------------------------------------------------
 //
 
-#ifndef _ECHO_EXTENSION_REQUEST_HANDLER_H_
-#define _ECHO_EXTENSION_REQUEST_HANDLER_H_
+#ifndef _SETDESKTOPSIZE_REQUEST_HANDLER_H_
+#define _SETDESKTOPSIZE_REQUEST_HANDLER_H_
 
 #include "util/inttypes.h"
 #include "network/RfbInputGate.h"
@@ -33,20 +33,20 @@
 #include "log-writer/LogWriter.h"
 
 /**
- * Handler of echo extension plugin client to server messages.
+ * Handler of SetDesktopSize plugin client to server messages.
  * Processes client requests and sends replies.
  */
-class EchoExtensionRequestHandler : public RfbDispatcherListener
+class SetDesktopSizeRequestHandler : public RfbDispatcherListener
 {
 public:
   /**
-   * Creates new echo extension client messages handler.
+   * Creates new SetDesktopSize client messages handler.
    * @param registrator rfb registrator which needs to register echo messages
    *   to rfb dispatcher address whem to this object.
    * @param output gate for writting replies for requests.
    * @pararm enabled indicates if echo response should be enabled or disabled
    */
-EchoExtensionRequestHandler(RfbCodeRegistrator *registrator,
+SetDesktopSizeRequestHandler(RfbCodeRegistrator *registrator,
                              RfbOutputGate *output,
                              LogWriter *log,
                              bool enabled = true);
@@ -54,15 +54,15 @@ EchoExtensionRequestHandler(RfbCodeRegistrator *registrator,
   /**
    * Deletes echo extension request handler.
    */
-  virtual ~EchoExtensionRequestHandler();
+  virtual ~SetDesktopSizeRequestHandler();
 
   /**
    * Inherited from RfbDispatcherListener.
-   * Processes echo extension client messages.
+   * Processes SetDesktopSize client messages.
    */
   virtual void onRequest(UINT32 reqCode, RfbInputGate *backGate);
   
-  bool isEchoExtensionEnabled();
+  bool isSetDesktopSizeEnabled();
 
 protected:
   //
@@ -76,4 +76,4 @@ protected:
   LogWriter *m_log;
 };
 
-#endif //_ECHO_EXTENSION_REQUEST_HANDLER_H_
+#endif //_SETDESKTOPSIZE_REQUEST_HANDLER_H_

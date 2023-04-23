@@ -71,6 +71,7 @@ public:
 
   static const int LAST_RECT = -224;
   static const int DESKTOP_SIZE = -223;
+  static const int EXTENDED_DESKTOP_SIZE = -308;
 
   static const int QUALITY_LEVEL_0 = -32;
   static const int QUALITY_LEVEL_1 = -31;

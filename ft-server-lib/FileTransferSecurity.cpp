@@ -60,6 +60,10 @@ void FileTransferSecurity::beginMessageProcessing()
         throw Exception(_T("Desktop is not default desktop."));
       }
 
+      if (sessionIsLocked()) {
+        throw Exception(_T("Desktop is locked."));
+      }
+
       impersonateAsLoggedUser();
 
       m_hasAccess = true;

@@ -67,7 +67,7 @@ void UserInputClient::sendInit(BlockingGate *gate)
   gate->writeUInt8(m_sendMouseFlags);
 }
 
-void UserInputClient::setMouseEvent(const Point *newPos, UINT8 keyFlag)
+void UserInputClient::setMouseEvent(const Point newPos, UINT8 keyFlag)
 {
   AutoLock al(m_forwGate);
   try {
@@ -143,6 +143,30 @@ void UserInputClient::getDisplayNumberCoords(Rect *rect,
     } catch (ReconnectException &) {
     }
   } while (!success);
+}
+
+std::vector<Rect> UserInputClient::getDisplaysCoords()
+{
+  std::vector<Rect> res;
+  AutoLock al(m_forwGate);
+  bool success = false;
+  unsigned char number;
+  do {
+    try {
+      res.resize(0);
+      // Send request
+      m_forwGate->writeUInt8(DISPLAYS_COORDS_REQ);
+      number = m_forwGate->readUInt8();
+      for (size_t i = 0; i < number; i++) {
+        Rect rect = readRect(m_forwGate);
+        res.push_back(rect);
+      }
+      success = true;
+    }
+    catch (ReconnectException &) {
+    }
+  } while (!success);
+  return res;
 }
 
 void UserInputClient::getNormalizedRect(Rect *rect)

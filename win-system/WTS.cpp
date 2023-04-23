@@ -26,8 +26,10 @@
 
 #include "SystemException.h"
 #include "thread/AutoLock.h"
+#include "Environment.h"
 #include "PipeImpersonatedThread.h"
 #include <crtdbg.h>
+
 
 DynamicLibrary *WTS::m_kernel32Library = 0;
 DynamicLibrary *WTS::m_wtsapi32Library = 0;
@@ -95,6 +97,38 @@ DWORD WTS::getRdpSessionId(LogWriter *log)
   return sessionId;
 }
 
+
+bool WTS::SessionIsRdpSession(DWORD sessionId, LogWriter *log)
+{
+  {
+    AutoLock l(&m_mutex);
+
+    if (!m_initialized) {
+      initialize(log);
+    }
+  }
+  bool res = false;
+  if (m_WTSQuerySessionInformation == 0) {
+    return res;
+  }
+
+  LPWSTR *buffer;
+  DWORD byteCount(0);
+
+  if (m_WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE, sessionId,
+    WTSWinStationName, &buffer, &byteCount) == 0) {
+    return res;
+  }
+  StringStorage sessionName((TCHAR *)buffer);
+  sessionName.toLowerCase();
+  if (sessionName.find(_T("rdp")) != 0) {
+    res = true;
+  }
+  wtsFreeMemory(buffer);
+  return res;
+}
+
+
 void WTS::queryConsoleUserToken(HANDLE *token, LogWriter *log) throw(SystemException)
 {
   {
@@ -141,6 +175,42 @@ bool WTS::getCurrentUserName(StringStorage *userName, LogWriter *log)
   wtsFreeMemory(buffer);
 
   return true;
+}
+
+bool WTS::sessionIsLocked(DWORD sessionId)
+{
+#ifndef UNICODE
+  return false;
+#endif
+
+  if (m_WTSQuerySessionInformation == 0) {
+    return false;
+  }
+
+  PWTSINFOEXW buffer = 0;
+  DWORD byteCount;
+  if (m_WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE, sessionId,
+    WTSSessionInfoEx, (LPWSTR**)&buffer, &byteCount) == 0) {
+    return false;
+  }
+  if (buffer->Level != 1) {
+    wtsFreeMemory(buffer);
+    return false;
+  }
+  WTSINFOEX_LEVEL1_W info = buffer->Data.WTSInfoExLevel1;
+  LONG locked = info.SessionFlags;
+  wtsFreeMemory(buffer);
+  // reverse for Windows Server 2008 R2 and Windows 7
+  if (Environment::isWin7()) {
+    if (locked == WTS_SESSIONSTATE_UNLOCK) {
+      return true;
+    } 
+	return false;
+  }
+  if (locked == WTS_SESSIONSTATE_LOCK) {
+    return true;
+  }
+  return false;
 }
 
 void WTS::wtsFreeMemory(void *buffer)

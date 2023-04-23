@@ -1,4 +1,4 @@
-// Copyright (C) 2009,2010,2011,2012 GlavSoft LLC.
+// Copyright (C) 2011,2012 GlavSoft LLC.
 // All rights reserved.
 //
 //-------------------------------------------------------------------------
@@ -22,47 +22,14 @@
 //-------------------------------------------------------------------------
 //
 
-#ifndef __THREADCOLLECTOR_H__
-#define __THREADCOLLECTOR_H__
+#include "ExtendedDesktopSizeDecoder.h"
 
-#include "Thread.h"
-#include "LocalMutex.h"
-#include "win-system/WindowsEvent.h"
-#include <list>
-
-using namespace std;
-
-typedef list<Thread *> ThreadList;
-
-// Collector threads.
-// ThreadCollector has it's own thread which deletes in infinity loop not
-// active threads.
-class ThreadCollector : protected Thread
+ExtendedDesktopSizeDecoder::ExtendedDesktopSizeDecoder(LogWriter *logWriter)
+: PseudoDecoder(logWriter)
 {
-public:
-  ThreadCollector();
-  virtual ~ThreadCollector();
+  m_encoding = PseudoEncDefs::EXTENDED_DESKTOP_SIZE;
+}
 
-  // Adds thread to a self list.
-  virtual void addThread(Thread *thread);
-
-  // Forces terminates all threads, waits until they dies and than
-  // delete them from memory and thread list.
-  void destroyAllThreads();
-
-  const size_t Size();
-
-protected:
-  virtual void execute();
-
-  // Deletes all dead threads from memory and removes them from self list.
-  void deleteDeadThreads();
-
-protected:
-  ThreadList m_threads;
-  LocalMutex m_lockObj;
-
-  WindowsEvent m_timer;
-};
-
-#endif // __THREADCOLLECTOR_H__
+ExtendedDesktopSizeDecoder::~ExtendedDesktopSizeDecoder()
+{
+}

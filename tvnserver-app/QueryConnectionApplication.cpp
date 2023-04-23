@@ -98,9 +98,9 @@ int QueryConnectionApplication::execute(const TCHAR *peerAddr, bool acceptByDefa
   int retCode = defaultRetCode;
 
   // Run command in separate process.
-
-  if (Configurator::getInstance()->getServiceFlag()) {
-    process = new CurrentConsoleProcess(&log, false, command.getString());
+  Configurator* conf = Configurator::getInstance();
+  if (conf->getServiceFlag()) {
+    process = new CurrentConsoleProcess(&log, conf->getServerConfig()->getConnectToRdpFlag(), command.getString());
   } else {
     process = new Process(command.getString());
   }

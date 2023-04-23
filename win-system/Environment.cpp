@@ -212,6 +212,12 @@ bool Environment::isVistaOrLater()
   return m_osVerInfo.dwMajorVersion >= 6;
 }
 
+bool Environment::isWin7()
+{
+  init();
+  return ((m_osVerInfo.dwMajorVersion == 6) && (m_osVerInfo.dwMinorVersion == 1) && isWinNTFamily());
+}
+
 void Environment::simulateCtrlAltDel(LogWriter *log)
 {
   // FIXME: Do not use log here.

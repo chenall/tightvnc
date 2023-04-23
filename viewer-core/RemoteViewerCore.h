@@ -453,6 +453,10 @@ public:
   virtual void getEnabledServerMsgCapabilities(vector<UINT32> *codes) const;
   virtual void getEnabledEncodingCapabilities(vector<UINT32> *codes) const;
 
+  // returns list of server displays offsets and dimensions
+  std::vector<Rect> getDesktops();
+  Dimension getDesktopSize();
+
 private:
   //
   // Overrides Thread::execute(). Implements the input thread.
@@ -639,6 +643,10 @@ private:
   // Mutex m_fbLock must locked into only this thread, else may be deadlock.
   LocalMutex m_fbLock;
   FrameBuffer m_frameBuffer;
+
+  // list of server dispalys
+  std::vector<Rect> m_desktops;
+  Dimension m_desktopSize;
 
   // Decoder work with this framebuffer. It is not actual frame buffer,
   // it only easy buffer, common to all decoders. In future this frame buffer 

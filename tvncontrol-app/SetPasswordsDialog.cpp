@@ -30,6 +30,7 @@
 #include "SetPasswordsDialog.h"
 
 #include "tvnserver/resource.h"
+#include "util/AnsiStringStorage.h"
 
 SetPasswordsDialog::SetPasswordsDialog(bool initStateOfUseRfbAuth,
                                        bool initStateOfUseAdminAuth)
@@ -44,6 +45,9 @@ SetPasswordsDialog::SetPasswordsDialog(bool initStateOfUseRfbAuth,
 
   m_passwordsNotMatchTooltip.setText(StringTable::getString(IDS_PASSWORDS_NOT_MATCH));
   m_passwordsNotMatchTooltip.setTitle(StringTable::getString(IDS_MBC_TVNCONTROL));
+
+  m_passwordWeakTooltip.setText(StringTable::getString(IDS_BAD_PASSWORD));
+  m_passwordWeakTooltip.setTitle(StringTable::getString(IDS_MBC_BAD_PASSWORD));
 }
 
 SetPasswordsDialog::~SetPasswordsDialog()
@@ -169,6 +173,12 @@ void SetPasswordsDialog::onOkButtonClick()
       m_rfbPassEdit2.setFocus();
       return;
     }
+    // shows message box if the password can't be converted to ANSI with no data lost
+    if (!AnsiStringStorage::checkAnsiConversion(rfbPass1)) {
+      m_rfbPassEdit1.showBalloonTip(&m_passwordWeakTooltip);
+      m_rfbPassEdit1.setFocus();
+      return;
+    }
     m_rfbPass.setString(rfbPass1.getString());
   }
   if (m_protectControlInterface) {
@@ -182,6 +192,12 @@ void SetPasswordsDialog::onOkButtonClick()
       m_admPassEdit2.setFocus();
       return;
     }
+    if (!AnsiStringStorage::checkAnsiConversion(admPass1)) {
+      m_admPassEdit1.showBalloonTip(&m_passwordWeakTooltip);
+      m_admPassEdit1.setFocus();
+      return;
+    }
+
     m_admPass.setString(admPass1.getString());
   }
   kill(IDOK);

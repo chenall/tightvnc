@@ -76,6 +76,9 @@ protected:
   // Enables and disables the edit controls by the current state.
   void updateEditControls();
 
+  BOOL checkAnsiConversion(StringStorage &plainTextInUTF16);
+
+
   CheckBox m_dontChangeRfbAuthSettingsRadio;
   CheckBox m_dontUseRfbAuthRadio;
   CheckBox m_useRfbAuthRadio;
@@ -91,6 +94,7 @@ protected:
   // Tooltip
   BalloonTip m_passwordEmptyTooltip;
   BalloonTip m_passwordsNotMatchTooltip;
+  BalloonTip m_passwordWeakTooltip;
 
   bool m_dontChangeRfbAuth;
   bool m_useRfbAuth;

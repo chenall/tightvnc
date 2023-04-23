@@ -32,6 +32,8 @@ CtrlAltDelSimulator::CtrlAltDelSimulator()
 
 CtrlAltDelSimulator::~CtrlAltDelSimulator()
 {
+  terminate();
+  wait();
 }
 
 void CtrlAltDelSimulator::execute()

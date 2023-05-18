@@ -81,7 +81,7 @@ public:
   bool richCursorEnabled() const;
   bool pointerPosEnabled() const;
   bool desktopSizeEnabled() const;
-  bool extendedDesktopSizeEnabled() const;
+  bool desktopConfigurationEnabled() const;
 
 protected:
 
@@ -108,7 +108,7 @@ protected:
   bool m_enableRichCursor;
   bool m_enablePointerPos;
   bool m_enableDesktopSize;
-  bool m_enableExtendedDesktopSize;
+  bool m_enableDesktopConfiguration;
 };
 
 #endif // __RFB_ENCODE_OPTIONS_H_INCLUDED__

@@ -87,11 +87,8 @@ bool CapsContainer::enable(const RfbCapabilityInfo *capinfo)
     return false;
   }
 
-  const RfbCapabilityInfo *known = &(infoMap[capinfo->code]);
-  if (memcmp(known->vendorSignature, capinfo->vendorSignature,
-             RfbCapabilityInfo::vendorSigSize) != 0 ||
-      memcmp(known->nameSignature, capinfo->nameSignature,
-             RfbCapabilityInfo::nameSigSize) != 0 ) {
+  const RfbCapabilityInfo known = infoMap[capinfo->code];
+  if (!known.isEqual(capinfo->vendorSignature, capinfo->nameSignature)){
     enableMap[capinfo->code] = false;
     return false;
   }
@@ -130,17 +127,11 @@ bool CapsContainer::isKnown(UINT32 code) const
   return (descMap.find(code) != descMap.end());
 }
 
-bool RfbCapabilityInfo::IsEqual(const char *vendor, const char *signature)
+bool RfbCapabilityInfo::isEqual(const char *vendor, const char *signature) const
 {
-    static const size_t vendorSigSize = 4;
-    static const size_t nameSigSize = 8;
-    for (int i = 0; i < vendorSigSize; i++ ) {
-	    if (vendorSignature[i] != vendor[i])
-		    return false;
-    }
-    for (int i = 0; i < nameSigSize; i++ ) {
-	    if (nameSignature[i] != signature[i])
-		    return false;
-    }
-    return true;
+  if (memcmp(vendorSignature, vendor, vendorSigSize) != 0 ||
+      memcmp(nameSignature, signature, nameSigSize) != 0 ) {
+    return false;
+  }
+  return true;
 }

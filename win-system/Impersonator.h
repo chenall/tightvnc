@@ -49,14 +49,22 @@ public:
   virtual void impersonateAsLoggedUser() throw(SystemException);
 
   /**
+  Impersonates calling process as user with given token.
+  @throws SystemException if impersonation fails.
+  */
+  virtual void impersonateAsCurrentProcessUser(bool rdpEnabled);
+
+  /**
   Cancels effect of impersonateAsLoggedUser method call.
   @throws SystemException on fail.
   */
   virtual void revertToSelf() throw(SystemException);
 
-  virtual bool sessionIsLocked();
+  virtual bool sessionIsLocked(bool rdpEnabled);
 
 protected:
+  void impersonateAsUser(HANDLE token);
+
   HANDLE m_token;
   HANDLE m_dupToken;
 

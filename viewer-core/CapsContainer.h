@@ -43,9 +43,9 @@ public:
 
 public:
   //
-  // Returns rtue if capability vendor and signature are equal to args
+  // Returns true if capability vendor and signature are equal to args
   //
-  bool IsEqual(const char *vendor, const char *signature);
+  bool isEqual(const char *vendor, const char *signature) const;
 };
 
 // This class is thread-safe.

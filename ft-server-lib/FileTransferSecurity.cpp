@@ -25,6 +25,7 @@
 #include "FileTransferSecurity.h"
 
 #include "server-config-lib/Configurator.h"
+#include "win-system/WTS.h"
 
 FileTransferSecurity::FileTransferSecurity(Desktop *desktop, LogWriter *log)
 : Impersonator(log),
@@ -41,38 +42,47 @@ FileTransferSecurity::~FileTransferSecurity()
 
 void FileTransferSecurity::beginMessageProcessing()
 {
-  bool runAsService = Configurator::getInstance()->getServiceFlag();
+  Configurator* conf = Configurator::getInstance();
+  bool runAsService = conf->getServiceFlag();
+  bool rdpEnabled = conf->getServerConfig()->getConnectToRdpFlag();
 
   if (!runAsService) {
     m_hasAccess = true;
-  } else {
-    try {
-      StringStorage userName, desktopName;
+    return;
+  } 
+  try {
+    StringStorage userName, desktopName;
 
-      if (m_desktop != NULL) {
-        m_desktop->getCurrentUserInfo(&desktopName, &userName);
-      }
+    if (m_desktop != NULL) {
+      m_desktop->getCurrentUserInfo(&desktopName, &userName);
+    }
 
-      desktopName.toLowerCase();
+    desktopName.toLowerCase();
 
-      // FIXME: Why we compare desktop name? why only default desktop?
-      if (!desktopName.isEqualTo(_T("default"))) {
-        throw Exception(_T("Desktop is not default desktop."));
-      }
+    // FIXME: Why we compare desktop name? why only default desktop?
+    if (!desktopName.isEqualTo(_T("default"))) {
+      throw Exception(_T("Desktop is not default desktop."));
+    }
 
-      if (sessionIsLocked()) {
-        throw Exception(_T("Desktop is locked."));
-      }
+    if (sessionIsLocked(rdpEnabled)) {
+      throw Exception(_T("Desktop is locked."));
+    }
 
+    if (rdpEnabled && (WTS::getRdpSessionId(m_log) != 0)) {
+      HANDLE token = WTS::duplicateCurrentProcessUserToken(rdpEnabled, m_log);
+      impersonateAsUser(token);
+    }
+    else {
       impersonateAsLoggedUser();
+    }
 
-      m_hasAccess = true;
-    } catch (Exception &e) {
-      m_log->error(_T("Access denied to the file transfer: %s"),
+
+    m_hasAccess = true;
+  } catch (Exception &e) {
+    m_log->error(_T("Access denied to the file transfer: %s"),
                  e.getMessage());
-      m_hasAccess = false;
-    } // try / catch.
-  } // if running as service.
+    m_hasAccess = false;
+  } // try / catch.
 }
 
 void FileTransferSecurity::throwIfAccessDenied()

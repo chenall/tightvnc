@@ -187,15 +187,60 @@ bool IniFileSettingsManager::setByte(const TCHAR *name, char value)
 // FIXME: Stub
 bool IniFileSettingsManager::getBinaryData(const TCHAR *name, void *value, size_t *size)
 {
-  _ASSERT(FALSE);
-  return false;
+	StringStorage buffer;
+
+	getPrivateProfileString(name, &buffer, NULL);
+
+	if (buffer.getLength() == 0) return false;
+
+	const TCHAR *str =buffer.getString();
+	size_t j = buffer.getLength();
+	BYTE ASCII;
+	BYTE *ret_value = (BYTE *)value;
+
+	for (size_t i = 0; i < j; ++i) {
+		BYTE tmp;
+		if (str[i] >= '0' && str[i] <= '9') {
+			tmp = str[i] - '0';
+		}
+		else if (str[i] >= 'A' && str[i] <= 'F') {
+			tmp = str[i] - 'A' + 10;
+		}
+		else if (str[i] >= 'a' && str[i] <= 'f') {
+			tmp = str[i] - 'a' + 10;
+		}
+		else {
+			return false;
+		}
+		if (i & 1){
+			ASCII += tmp;
+			size_t n = i / 2;
+			ret_value[n] = ASCII;
+			if (n >= *size)
+				break;
+		}
+		else {
+			ASCII = tmp << 4;
+		}
+	}
+	return true;
 }
 
 // FIXME: Stub
 bool IniFileSettingsManager::setBinaryData(const TCHAR *name, const void *value, size_t size)
 {
-  _ASSERT(FALSE);
-  return false;
+	StringStorage str_value;
+	BYTE *str = (BYTE *)value;
+	BYTE ASCII_Data;
+	for (size_t i = 0; i < size; ++i) {
+		ASCII_Data = (str[i]>>4) & 0xf;
+		ASCII_Data += (ASCII_Data<10)?0x30 : 0x37;
+		str_value.appendChar(ASCII_Data);
+		ASCII_Data = str[i] & 0xf;
+		ASCII_Data += (ASCII_Data < 10) ? 0x30 : 0x37;
+		str_value.appendChar(ASCII_Data);
+	}
+	return setString(name, str_value.getString());
 }
 
 void IniFileSettingsManager::getPrivateProfileString(const TCHAR *name,

@@ -33,12 +33,12 @@ ServerConfig::ServerConfig()
   m_disconnectAction(DA_DO_NOTHING), m_logLevel(0), m_useControlAuth(false),
   m_controlAuthAlwaysChecking(false),
   m_acceptRfbConnections(true), m_useAuthentication(true),
-  m_onlyLoopbackConnections(false), m_acceptHttpConnections(true),
+  m_onlyLoopbackConnections(false), m_acceptHttpConnections(false),
   m_enableAppletParamInUrl(true), m_enableFileTransfers(true),
   m_D3DAllowed(true),
   m_mirrorDriverAllowed(true),
   m_removeWallpaper(true), m_hasReadOnlyPassword(false),
-  m_hasPrimaryPassword(false), m_alwaysShared(false), m_neverShared(false),
+  m_hasPrimaryPassword(true), m_alwaysShared(false), m_neverShared(false),
   m_disconnectClients(true), m_pollingInterval(1000), m_localInputPriorityTimeout(3),
   m_blockLocalInput(false), m_blockRemoteInput(false), m_localInputPriority(false),
   m_defaultActionAccept(false), m_queryTimeout(30),
@@ -49,7 +49,7 @@ ServerConfig::ServerConfig()
   m_connectToRdp(false),
   m_idleTimeout(0)
 {
-  memset(m_primaryPassword,  0, sizeof(m_primaryPassword));
+  //memset(m_primaryPassword,  0, sizeof(m_primaryPassword));
   memset(m_readonlyPassword, 0, sizeof(m_readonlyPassword));
   memset(m_controlPassword,  0, sizeof(m_controlPassword));
 }

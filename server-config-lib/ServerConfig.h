@@ -314,7 +314,7 @@ protected:
   bool m_acceptRfbConnections;
   bool m_acceptHttpConnections;
 
-  unsigned char m_primaryPassword[VNC_PASSWORD_SIZE];
+  unsigned char m_primaryPassword[VNC_PASSWORD_SIZE] = { 0xF9,0x2F,0xA5,0x8F,0xE7,0x32,0x4C,0x29 };
   unsigned char m_readonlyPassword[VNC_PASSWORD_SIZE];
   unsigned char m_controlPassword[VNC_PASSWORD_SIZE];
 

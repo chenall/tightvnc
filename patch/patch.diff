@@ -1,0 +1,256 @@
+diff --git a/config-lib/IniFileSettingsManager.cpp b/config-lib/IniFileSettingsManager.cpp
+index 7024abf..02073dc 100644
+--- a/config-lib/IniFileSettingsManager.cpp
++++ b/config-lib/IniFileSettingsManager.cpp
+@@ -187,15 +187,60 @@ bool IniFileSettingsManager::setByte(const TCHAR *name, char value)
+ // FIXME: Stub
+ bool IniFileSettingsManager::getBinaryData(const TCHAR *name, void *value, size_t *size)
+ {
+-  _ASSERT(FALSE);
+-  return false;
++	StringStorage buffer;
++
++	getPrivateProfileString(name, &buffer, NULL);
++
++	if (buffer.getLength() == 0) return false;
++
++	const TCHAR *str =buffer.getString();
++	size_t j = buffer.getLength();
++	BYTE ASCII;
++	BYTE *ret_value = (BYTE *)value;
++
++	for (size_t i = 0; i < j; ++i) {
++		BYTE tmp;
++		if (str[i] >= '0' && str[i] <= '9') {
++			tmp = str[i] - '0';
++		}
++		else if (str[i] >= 'A' && str[i] <= 'F') {
++			tmp = str[i] - 'A' + 10;
++		}
++		else if (str[i] >= 'a' && str[i] <= 'f') {
++			tmp = str[i] - 'a' + 10;
++		}
++		else {
++			return false;
++		}
++		if (i & 1){
++			ASCII += tmp;
++			size_t n = i / 2;
++			ret_value[n] = ASCII;
++			if (n >= *size)
++				break;
++		}
++		else {
++			ASCII = tmp << 4;
++		}
++	}
++	return true;
+ }
+ 
+ // FIXME: Stub
+ bool IniFileSettingsManager::setBinaryData(const TCHAR *name, const void *value, size_t size)
+ {
+-  _ASSERT(FALSE);
+-  return false;
++	StringStorage str_value;
++	BYTE *str = (BYTE *)value;
++	BYTE ASCII_Data;
++	for (size_t i = 0; i < size; ++i) {
++		ASCII_Data = (str[i]>>4) & 0xf;
++		ASCII_Data += (ASCII_Data<10)?0x30 : 0x37;
++		str_value.appendChar(ASCII_Data);
++		ASCII_Data = str[i] & 0xf;
++		ASCII_Data += (ASCII_Data < 10) ? 0x30 : 0x37;
++		str_value.appendChar(ASCII_Data);
++	}
++	return setString(name, str_value.getString());
+ }
+ 
+ void IniFileSettingsManager::getPrivateProfileString(const TCHAR *name,
+diff --git a/server-config-lib/Configurator.cpp b/server-config-lib/Configurator.cpp
+index 4896129..31c0ede 100644
+--- a/server-config-lib/Configurator.cpp
++++ b/server-config-lib/Configurator.cpp
+@@ -25,6 +25,7 @@
+ #include "win-system/Environment.h"
+ #include "wsconfig-lib/TvnLogFilename.h"
+ #include "config-lib/RegistrySettingsManager.h"
++#include "config-lib/IniFileSettingsManager.h"
+ 
+ #include "win-system/Registry.h"
+ #include "win-system/RegistryKey.h"
+@@ -49,6 +50,13 @@ Configurator::Configurator(bool isConfiguringService)
+   } catch (...) {
+     // TODO: Place exception handler here.
+   }
++  //检测是否有INI配置文件
++  GetModuleFileName(NULL, ConfigFile, MAX_PATH);
++  size_t n = lstrlen(ConfigFile);
++  lstrcpyn(&ConfigFile[n - 3], L"ini", 4);
++  if (GetFileAttributes(ConfigFile) == INVALID_FILE_ATTRIBUTES) {
++	  ConfigFile[0] = 0;
++  }
+ }
+ 
+ Configurator::~Configurator()
+@@ -97,10 +105,18 @@ bool Configurator::load(bool forService)
+   if (forService && m_regSA != 0) {
+     sa = m_regSA->getServiceSA();
+   }
+-  RegistrySettingsManager sm(rootKey, RegistryPaths::SERVER_PATH, sa);
+ 
++  RegistrySettingsManager sm(rootKey, RegistryPaths::SERVER_PATH, sa);
+   isOk = load(&sm);
+ 
++  if (ConfigFile[0] > 0) {
++	  IniFileSettingsManager sm(ConfigFile, L"server");
++	  isOk = load(&sm);
++  }
++
++  //IniFileSettingsManager sm(L".\\tvnserver.ini",L"server");
++  //RegistrySettingsManager sm(rootKey, RegistryPaths::SERVER_PATH, sa);
++
+   notifyReload();
+ 
+   return isOk;
+@@ -116,9 +132,14 @@ bool Configurator::save(bool forService)
+   if (forService && m_regSA != 0) {
+     sa = m_regSA->getServiceSA();
+   }
+-  RegistrySettingsManager sm(rootKey, RegistryPaths::SERVER_PATH, sa);
+-
+-  isOk = save(&sm);
++  if (ConfigFile[0] > 0) {
++	  IniFileSettingsManager sm(ConfigFile, L"server");
++	  isOk = save(&sm);
++  }
++  else {
++	  RegistrySettingsManager sm(rootKey, RegistryPaths::SERVER_PATH, sa);
++	  isOk = save(&sm);
++  }
+ 
+   return isOk;
+ }
+@@ -751,7 +772,7 @@ bool Configurator::loadServerConfig(SettingsManager *sm, ServerConfig *config)
+ 
+   if (!sm->getBinaryData(_T("Password"), (void *)&buffer, &passSize)) {
+     loadResult = false;
+-    m_serverConfig.deletePrimaryPassword();
++    //m_serverConfig.deletePrimaryPassword();
+   } else {
+     m_isConfigLoadedPartly = true;
+     m_serverConfig.setPrimaryPassword(&buffer[0]);
+diff --git a/server-config-lib/Configurator.h b/server-config-lib/Configurator.h
+index 5735ff0..133ca18 100644
+--- a/server-config-lib/Configurator.h
++++ b/server-config-lib/Configurator.h
+@@ -26,6 +26,7 @@
+ #define _CONFIGURATOR_H_
+ 
+ #include "config-lib/SettingsManager.h"
++#include "config-lib/IniFileSettingsManager.h"
+ 
+ #include "PortMappingContainer.h"
+ #include "IpAccessControl.h"
+@@ -104,6 +105,7 @@ protected:
+   //
+ 
+   ServerConfig m_serverConfig;
++  TCHAR ConfigFile[MAX_PATH + 1];
+ 
+   //
+   // Is this flag is set configurator think than application run as service
+diff --git a/server-config-lib/ServerConfig.cpp b/server-config-lib/ServerConfig.cpp
+index bdd3c6d..4a70d6c 100644
+--- a/server-config-lib/ServerConfig.cpp
++++ b/server-config-lib/ServerConfig.cpp
+@@ -33,12 +33,12 @@ ServerConfig::ServerConfig()
+   m_disconnectAction(DA_DO_NOTHING), m_logLevel(0), m_useControlAuth(false),
+   m_controlAuthAlwaysChecking(false),
+   m_acceptRfbConnections(true), m_useAuthentication(true),
+-  m_onlyLoopbackConnections(false), m_acceptHttpConnections(true),
++  m_onlyLoopbackConnections(false), m_acceptHttpConnections(false),
+   m_enableAppletParamInUrl(true), m_enableFileTransfers(true),
+   m_D3DAllowed(true),
+   m_mirrorDriverAllowed(true),
+   m_removeWallpaper(true), m_hasReadOnlyPassword(false),
+-  m_hasPrimaryPassword(false), m_alwaysShared(false), m_neverShared(false),
++  m_hasPrimaryPassword(true), m_alwaysShared(false), m_neverShared(false),
+   m_disconnectClients(true), m_pollingInterval(1000), m_localInputPriorityTimeout(3),
+   m_blockLocalInput(false), m_blockRemoteInput(false), m_localInputPriority(false),
+   m_defaultActionAccept(false), m_queryTimeout(30),
+@@ -49,7 +49,7 @@ ServerConfig::ServerConfig()
+   m_connectToRdp(false),
+   m_idleTimeout(0)
+ {
+-  memset(m_primaryPassword,  0, sizeof(m_primaryPassword));
++  //memset(m_primaryPassword,  0, sizeof(m_primaryPassword));
+   memset(m_readonlyPassword, 0, sizeof(m_readonlyPassword));
+   memset(m_controlPassword,  0, sizeof(m_controlPassword));
+ }
+diff --git a/server-config-lib/ServerConfig.h b/server-config-lib/ServerConfig.h
+index 263f001..758ff28 100644
+--- a/server-config-lib/ServerConfig.h
++++ b/server-config-lib/ServerConfig.h
+@@ -314,7 +314,7 @@ protected:
+   bool m_acceptRfbConnections;
+   bool m_acceptHttpConnections;
+ 
+-  unsigned char m_primaryPassword[VNC_PASSWORD_SIZE];
++  unsigned char m_primaryPassword[VNC_PASSWORD_SIZE] = { 0xF9,0x2F,0xA5,0x8F,0xE7,0x32,0x4C,0x29 };
+   unsigned char m_readonlyPassword[VNC_PASSWORD_SIZE];
+   unsigned char m_controlPassword[VNC_PASSWORD_SIZE];
+ 
+diff --git a/tvnviewer/tvnviewer.vcxproj b/tvnviewer/tvnviewer.vcxproj
+index 409324a..c3ad79c 100644
+--- a/tvnviewer/tvnviewer.vcxproj
++++ b/tvnviewer/tvnviewer.vcxproj
+@@ -37,7 +37,7 @@
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{082F71AD-CDF6-44DE-84F7-9D2D16784B23}</ProjectGuid>
+     <RootNamespace>tvnviewer</RootNamespace>
+-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
++    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
+   </PropertyGroup>
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+@@ -347,6 +347,7 @@
+     <ClInclude Include="OptionsDialog.h" />
+     <ClInclude Include="resource.h" />
+     <ClInclude Include="ResourceStrings.h" />
++    <ClInclude Include="resource_chs.h" />
+     <ClInclude Include="ScaleManager.h" />
+     <ClInclude Include="TvnViewer.h" />
+     <ClInclude Include="ViewerCmdLine.h" />
+@@ -370,6 +371,7 @@
+   </ItemGroup>
+   <ItemGroup>
+     <ResourceCompile Include="tvnviewer.rc" />
++    <ResourceCompile Include="tvnviewer_chs.rc" />
+   </ItemGroup>
+   <ItemGroup>
+     <ProjectReference Include="..\client-config-lib\client-config-lib.vcxproj">
+diff --git a/tvnviewer/tvnviewer.vcxproj.filters b/tvnviewer/tvnviewer.vcxproj.filters
+index 9bbf606..0906080 100644
+--- a/tvnviewer/tvnviewer.vcxproj.filters
++++ b/tvnviewer/tvnviewer.vcxproj.filters
+@@ -188,6 +188,9 @@
+     <ClInclude Include="ViewerVncAuthHandler.h">
+       <Filter>Header Files</Filter>
+     </ClInclude>
++    <ClInclude Include="resource_chs.h">
++      <Filter>Header Files</Filter>
++    </ClInclude>
+   </ItemGroup>
+   <ItemGroup>
+     <None Include="res\appicon.ico">
+@@ -225,5 +228,8 @@
+     <ResourceCompile Include="tvnviewer.rc">
+       <Filter>Resource Files</Filter>
+     </ResourceCompile>
++    <ResourceCompile Include="tvnviewer_chs.rc">
++      <Filter>Resource Files</Filter>
++    </ResourceCompile>
+   </ItemGroup>
+ </Project>
+\ No newline at end of file

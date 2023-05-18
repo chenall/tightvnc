@@ -37,7 +37,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{082F71AD-CDF6-44DE-84F7-9D2D16784B23}</ProjectGuid>
     <RootNamespace>tvnviewer</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -347,6 +347,7 @@
     <ClInclude Include="OptionsDialog.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceStrings.h" />
+    <ClInclude Include="resource_chs.h" />
     <ClInclude Include="ScaleManager.h" />
     <ClInclude Include="TvnViewer.h" />
     <ClInclude Include="ViewerCmdLine.h" />
@@ -370,6 +371,7 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="tvnviewer.rc" />
+    <ResourceCompile Include="tvnviewer_chs.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\client-config-lib\client-config-lib.vcxproj">

@@ -65,8 +65,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hookldr", "hookldr\hookldr.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win-event-log", "win-event-log\win-event-log.vcxproj", "{1E316AB4-E681-4F2B-97A7-CD7DE904AF62}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcp-dispatcher", "tcp-dispatcher\tcp-dispatcher.vcxproj", "{9A7033FA-6263-425D-83BF-A1D9F48BA997}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tvnviewer", "tvnviewer\tvnviewer.vcxproj", "{082F71AD-CDF6-44DE-84F7-9D2D16784B23}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4793826B-B077-4D75-A36C-66C9724C08F4} = {4793826B-B077-4D75-A36C-66C9724C08F4}
@@ -819,30 +817,6 @@ Global
 		{1E316AB4-E681-4F2B-97A7-CD7DE904AF62}.ReleaseNoUnicode|x64.Build.0 = ReleaseNoUnicode|x64
 		{1E316AB4-E681-4F2B-97A7-CD7DE904AF62}.ReleaseNoUnicode|x86.ActiveCfg = ReleaseNoUnicode|x86
 		{1E316AB4-E681-4F2B-97A7-CD7DE904AF62}.ReleaseNoUnicode|x86.Build.0 = ReleaseNoUnicode|x86
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.Debug|ARM64.ActiveCfg = Debug|ARM64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.Debug|ARM64.Build.0 = Debug|ARM64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.Debug|x64.ActiveCfg = Debug|x64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.Debug|x64.Build.0 = Debug|x64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.Debug|x86.ActiveCfg = Debug|x86
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.Debug|x86.Build.0 = Debug|x86
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.DebugNoUnicode|ARM64.ActiveCfg = DebugNoUnicode|ARM64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.DebugNoUnicode|ARM64.Build.0 = DebugNoUnicode|ARM64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.DebugNoUnicode|x64.ActiveCfg = DebugNoUnicode|x64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.DebugNoUnicode|x64.Build.0 = DebugNoUnicode|x64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.DebugNoUnicode|x86.ActiveCfg = DebugNoUnicode|x86
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.DebugNoUnicode|x86.Build.0 = DebugNoUnicode|x86
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.Release|ARM64.ActiveCfg = Release|ARM64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.Release|ARM64.Build.0 = Release|ARM64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.Release|x64.ActiveCfg = Release|x64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.Release|x64.Build.0 = Release|x64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.Release|x86.ActiveCfg = Release|Win32
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.Release|x86.Build.0 = Release|Win32
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.ReleaseNoUnicode|ARM64.ActiveCfg = ReleaseNoUnicode|ARM64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.ReleaseNoUnicode|ARM64.Build.0 = ReleaseNoUnicode|ARM64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.ReleaseNoUnicode|x64.ActiveCfg = ReleaseNoUnicode|x64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.ReleaseNoUnicode|x64.Build.0 = ReleaseNoUnicode|x64
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.ReleaseNoUnicode|x86.ActiveCfg = ReleaseNoUnicode|x86
-		{9A7033FA-6263-425D-83BF-A1D9F48BA997}.ReleaseNoUnicode|x86.Build.0 = ReleaseNoUnicode|x86
 		{082F71AD-CDF6-44DE-84F7-9D2D16784B23}.Debug|ARM64.ActiveCfg = Debug|ARM64
 		{082F71AD-CDF6-44DE-84F7-9D2D16784B23}.Debug|ARM64.Build.0 = Debug|ARM64
 		{082F71AD-CDF6-44DE-84F7-9D2D16784B23}.Debug|x64.ActiveCfg = Debug|x64

@@ -129,8 +129,15 @@ bool WTS::SessionIsRdpSession(DWORD sessionId, LogWriter *log)
 }
 
 
-void WTS::queryConsoleUserToken(HANDLE *token, LogWriter *log) throw(SystemException)
+HANDLE WTS::queryConsoleUserToken(LogWriter *log) throw(SystemException)
 {
+  DWORD sessionId = getActiveConsoleSessionId(log);
+  return sessionUserToken(sessionId, log);
+}
+
+HANDLE WTS::sessionUserToken(DWORD sessionId, LogWriter* log)
+{
+  HANDLE token = NULL;
   {
     AutoLock l(&m_mutex);
 
@@ -139,45 +146,51 @@ void WTS::queryConsoleUserToken(HANDLE *token, LogWriter *log) throw(SystemExcep
     }
   }
 
-  DWORD sessionId = getActiveConsoleSessionId(log);
-
   AutoLock l(&m_mutex);
 
   if (m_WTSQueryUserToken != 0) {
-    if (!m_WTSQueryUserToken(sessionId, token)) {
-	    throw SystemException(_T("WTSQueryUserToken error:"));
+    if (!m_WTSQueryUserToken(sessionId, &token)) {
+      throw SystemException(_T("WTSQueryUserToken error:"));
     }
-  } else {
+  }
+  else {
     if (m_userProcessToken == INVALID_HANDLE_VALUE) {
       throw SystemException(_T("No console user process id specified"));
     }
     if (!DuplicateTokenEx(m_userProcessToken, 0, NULL, SecurityImpersonation,
-                          TokenPrimary, token)) {
+      TokenPrimary, &token)) {
       throw SystemException(_T("Could not duplicate token"));
     }
   }
+  return token;
 }
 
-bool WTS::getCurrentUserName(StringStorage *userName, LogWriter *log)
+
+StringStorage WTS::getCurrentUserName(LogWriter *log)
 {
-  if (m_WTSQuerySessionInformation == 0) {
-    return false;
-  }
 
-  LPTSTR *buffer;
-  DWORD byteCount;
   DWORD sessionId = getActiveConsoleSessionId(log);
-  if (m_WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE, sessionId,
-                                   WTSUserName, &buffer, &byteCount) == 0) {
-    return false;
-  }
-  userName->setString((TCHAR *)buffer);
-  wtsFreeMemory(buffer);
-
-  return true;
+  return getUserName(sessionId, log);
 }
 
-bool WTS::sessionIsLocked(DWORD sessionId)
+StringStorage WTS::getUserName(DWORD sessionId, LogWriter* log)
+{
+  StringStorage userName;
+  if (m_WTSQuerySessionInformation == 0) {
+    return userName;
+  }
+
+  LPTSTR* buffer;
+  DWORD byteCount;
+  if (m_WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE, sessionId,
+    WTSUserName, &buffer, &byteCount) != 0) {
+    userName.setString((TCHAR*)buffer);
+    wtsFreeMemory(buffer);
+  }
+  return userName;
+}
+
+bool WTS::sessionIsLocked(DWORD sessionId, LogWriter* log)
 {
 #ifndef UNICODE
   return false;
@@ -205,7 +218,7 @@ bool WTS::sessionIsLocked(DWORD sessionId)
     if (locked == WTS_SESSIONSTATE_UNLOCK) {
       return true;
     } 
-	return false;
+	  return false;
   }
   if (locked == WTS_SESSIONSTATE_LOCK) {
     return true;
@@ -318,6 +331,128 @@ void WTS::initialize(LogWriter *log)
   }
 
   m_initialized = true;
+}
+
+HANDLE currentProcessUserToken(LogWriter* log)
+{
+  HANDLE token = NULL;
+  HANDLE procHandle = GetCurrentProcess();
+  log->debug(_T("Try OpenProcessToken(%p, , )"), (void*)procHandle);
+  if (OpenProcessToken(procHandle, TOKEN_DUPLICATE, &token) == 0) {
+    throw SystemException();
+  }
+  return token;
+}
+
+
+HANDLE WTS::duplicateCurrentProcessUserToken(bool rdpEnabled, LogWriter* log)
+{
+  DWORD rdpSession = 0;
+  DWORD activeSession = 0;
+  DWORD sessionId = 0;
+  bool rdp = false;
+
+  if (rdpEnabled) {
+    rdpSession = getRdpSessionId(log);
+    if (rdpSession) {
+      rdp = true;
+    }
+  }
+  activeSession = getActiveConsoleSessionId(log);
+
+  log->debug(_T("rdpSession user name: %s"), getUserName(rdpSession, log).getString());
+  log->debug(_T("activeSession user name: %s"), getUserName(activeSession, log).getString());
+
+  if (rdp) {
+    sessionId = rdpSession;
+    log->info(_T("Connect as RDP user at %d session"), sessionId);
+  } else {
+    sessionId = getActiveConsoleSessionId(log);
+    log->info(_T("Connect as current user at %d session"), sessionId);
+  }
+  log->debug(_T("Session user name: %s"), getUserName(sessionId, log).getString());
+
+  HANDLE token;
+
+  if (rdp && !sessionIsLocked(sessionId, log)) {
+    token = sessionUserToken(sessionId, log);
+  } else {
+    token = currentProcessUserToken(log);
+  }
+
+  HANDLE userToken = duplicateUserImpersonationToken(token, sessionId, log);
+  CloseHandle(token);
+
+  return userToken;
+}
+
+HANDLE WTS::duplicateUserImpersonationToken(HANDLE token, DWORD sessionId, LogWriter* log)
+{
+  HANDLE userToken;
+
+  log->debug(_T("Try DuplicateTokenEx(%p, , , , , )"), (void*)token);
+  if (DuplicateTokenEx(token,
+    MAXIMUM_ALLOWED,
+    0,
+    SecurityImpersonation,
+    TokenPrimary,
+    &userToken) == 0) {
+    throw SystemException();
+  }
+
+  log->debug(_T("Try SetTokenInformation(%p, , , )"), (void*)userToken);
+  if (SetTokenInformation(userToken,
+    (TOKEN_INFORMATION_CLASS)TokenSessionId,
+    &sessionId,
+    sizeof(sessionId)) == 0) {
+    throw SystemException();
+  }
+  // Fix Windows 8/8.1 UIAccess restrictions (Alt-Tab) for server as service
+  // http://stackoverflow.com/questions/13972165/pressing-winx-alt-tab-programatically
+  // For application we need to set /uiAccess='true' in linker manifest, sign binary 
+  // and run from "Program Files/"
+
+  DWORD uiAccess = 1; // Nonzero enables UI control
+  log->debug(_T("Try SetTokenInformation(%p, , , ) with UIAccess=1"), (void*)userToken);
+
+  if (SetTokenInformation(userToken,
+    (TOKEN_INFORMATION_CLASS)TokenUIAccess,
+    &uiAccess,
+    sizeof(uiAccess)) == 0) {
+    log->info(_T("Can't set UIAccess=1, ignore it"));
+  }
+  StringStorage name = getTokenUserName(userToken);
+  log->debug(_T("duplicate user token for user: %s, session ID: %d"), name.getString(), sessionId);
+
+  return userToken;
+}
+
+StringStorage WTS::getTokenUserName(HANDLE token) {
+  StringStorage name;
+  DWORD tokenSize = 0;
+  GetTokenInformation(token, TokenUser, NULL, 0, &tokenSize);
+
+  if (tokenSize <= 0) {
+    return name;
+  }
+
+  BYTE* data = new BYTE[tokenSize];
+  GetTokenInformation(token, TokenUser, data, tokenSize, &tokenSize); // 3- GetTokenInformation
+  TOKEN_USER* pUser = (TOKEN_USER*)data;
+  PSID pSID = pUser->User.Sid;
+  DWORD userSize = 0;
+  DWORD domainSize = 0;
+  SID_NAME_USE sidName;
+  LookupAccountSid(NULL, pSID, NULL, &userSize, NULL, &domainSize, &sidName);
+  TCHAR* user = new TCHAR[userSize + 1];
+  TCHAR* domain = new TCHAR[domainSize + 1];
+  LookupAccountSid(NULL, pSID, user, &userSize, domain, &domainSize, &sidName); 
+  user[userSize] = _T('\0');
+  name.setString(user);
+  delete[] data;
+  delete[] domain;
+  delete[] user;
+  return name;
 }
 
 WTS::WTS()

@@ -90,7 +90,6 @@ protected:
   void readSetPixelFormat(RfbInputGate *io);
   void readSetEncodings(RfbInputGate *io);
   void readVideoFreeze(RfbInputGate *io);
-  void readSetDesktopSize(RfbInputGate *io);
 
   // The addUpdateContainer() function adds all updates from the first
   // updateContainer parameter to the own UpdateContainer object.

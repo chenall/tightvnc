@@ -155,7 +155,8 @@ bool Environment::getCurrentModuleFolderPath(StringStorage *out)
 
 bool Environment::getCurrentUserName(StringStorage *out, LogWriter *log)
 {
-  return WTS::getCurrentUserName(out, log);
+  *out = WTS::getCurrentUserName(log);
+  return !out->isEmpty();
 }
 
 bool Environment::getComputerName(StringStorage *out)

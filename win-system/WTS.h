@@ -91,20 +91,22 @@ public:
   static DWORD getRdpSessionId(LogWriter *log);
 
   /**
-  * returns true if sessionId is the RDP console session id.
+  * @return true if sessionId is the RDP console session id.
   */
   static bool SessionIsRdpSession(DWORD sessionId, LogWriter *log);
 
   /**
    * Queries user token in active console session.
-   * @param token [out] output user token parameter.
+   * @return user token.
    * @throws SystemException on fail.
    * @remark if WTSQueryUserToken is avaliable when it will be used with
    * session id equal to active console session id, if not, then user
    * process id will be used to get user token (this id can be set by using of
    * defineConsoleUserProcessId() method).
    */
-  static void queryConsoleUserToken(HANDLE *token, LogWriter *log) throw(SystemException);
+  static HANDLE queryConsoleUserToken(LogWriter *log) throw(SystemException);
+
+  static HANDLE sessionUserToken(DWORD sessionId, LogWriter* log) throw(SystemException);
 
   /**
    * Defines global (for WTS class) user process that will be used
@@ -119,9 +121,20 @@ public:
   // rdp.
   static void duplicatePipeClientToken(HANDLE pipeHandle);
 
-  static bool getCurrentUserName(StringStorage *userName, LogWriter *log);
+  static StringStorage getUserName(DWORD sessionId, LogWriter *log);
+  static StringStorage getCurrentUserName(LogWriter* log);
 
-  static bool sessionIsLocked(DWORD sessionId);
+  static bool sessionIsLocked(DWORD sessionId, LogWriter* log);
+
+  static HANDLE duplicateCurrentProcessUserToken(bool rdpEnabled, LogWriter* log) throw(SystemException);
+
+  static HANDLE duplicateUserImpersonationToken(HANDLE token, DWORD sessionId, LogWriter* log);
+
+  /**
+   * Returns user name for given access token.
+   * @param token access or impersonation token.
+   */
+  static StringStorage getTokenUserName(HANDLE token);
 
 private:
   /**

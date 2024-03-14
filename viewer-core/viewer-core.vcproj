@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="viewer-core"
 	ProjectGUID="{3EA91983-D9EB-4369-8167-130122BFDF07}"
 	RootNamespace="viewercore"
@@ -685,10 +685,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ExtendedDesktopSizeDecoder.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\FbUpdateNotifier.cpp"
 				>
 			</File>
@@ -776,10 +772,6 @@
 			</File>
 			<File
 				RelativePath=".\DispatchDataProvider.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ExtendedDesktopSizeDecoder.h"
 				>
 			</File>
 			<File

@@ -41,7 +41,19 @@ Impersonator::~Impersonator()
 
 void Impersonator::impersonateAsLoggedUser()
 {
-  WTS::queryConsoleUserToken(&m_token, m_log);
+  HANDLE token = WTS::queryConsoleUserToken(m_log);
+  impersonateAsUser(token);
+}
+
+void Impersonator::impersonateAsUser(HANDLE token)
+{
+  if (m_token != INVALID_HANDLE_VALUE) {
+    CloseHandle(m_token);
+  }
+  m_token = token;
+
+  StringStorage name = WTS::getTokenUserName(m_token);
+  m_log->debug(_T("impersonate as user: %s"), name.getString());
 
   if ((!DuplicateToken(m_token, SecurityImpersonation, &m_dupToken))) {
     throw SystemException(_T("could not DuplicateToken"));
@@ -49,7 +61,15 @@ void Impersonator::impersonateAsLoggedUser()
   if (!ImpersonateLoggedOnUser(m_dupToken)) {
     throw SystemException(_T("could not ImpersonateLoggedOnUser"));
   }
+
 }
+
+void Impersonator::impersonateAsCurrentProcessUser(bool rdpEnabled)
+{
+  HANDLE token = WTS::duplicateCurrentProcessUserToken(rdpEnabled, m_log);
+  impersonateAsUser(token);
+}
+
 
 void Impersonator::revertToSelf()
 {
@@ -69,8 +89,14 @@ void Impersonator::revertToSelf()
   }
 }
 
-bool Impersonator::sessionIsLocked()
+bool Impersonator::sessionIsLocked(bool rdpEnabled)
 {
-  DWORD id = WTS::getActiveConsoleSessionId(m_log);
-  return WTS::sessionIsLocked(id);
+  DWORD id = 0;
+  if (rdpEnabled) {
+    id = WTS::getRdpSessionId(m_log);
+  }
+  if (id == 0) {
+    id = WTS::getActiveConsoleSessionId(m_log);
+  }
+  return WTS::sessionIsLocked(id, m_log);
 }

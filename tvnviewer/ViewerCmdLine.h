@@ -60,7 +60,6 @@ protected:
   static const TCHAR HOST[];
   static const TCHAR PORT[];
   static const TCHAR PASSWORD[];
-  static const TCHAR DISPATCH_ID[];
   static const TCHAR SHOW_CONTROLS[];
   static const TCHAR VIEW_ONLY[];
   static const TCHAR USE_CLIPBOARD[];
@@ -108,7 +107,6 @@ private:
   bool isHelpPresent();
   void parseOptionsFile();
   void parsePassword();
-  void parseDispatchId();
   void parseEncoding();
   void parseMouseShape();
   void parseMouseCursor();

@@ -33,8 +33,6 @@ const TCHAR ProductNames::SERVER_PRODUCT_NAME[] = _T("TightVNC Server");
 const TCHAR RegistryPaths::SERVER_PATH[] = _T("Software\\TightVNC\\Server");
 const TCHAR RegistryPaths::SERVER_REVERSE_CONN_HISTORY_PATH[] =
   _T("Software\\TightVNC\\Control\\ReverseConnectionHistory");
-const TCHAR RegistryPaths::DISPATCHER_CONN_HISTORY_PATH[] =
-  _T("Software\\TightVNC\\Control\\DispatcherConnectionHistory");
 
 const TCHAR WindowNames::WINDOW_CLASS_NAME[] =
   _T("TvnWindowsApplicationClass");

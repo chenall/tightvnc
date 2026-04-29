@@ -24,6 +24,8 @@
 
 #include "WindowsClipboard.h"
 #include "tvnserver-app/NamingDefs.h"
+#include "util/Exception.h"
+#include <vector>
 
 const HINSTANCE WindowsClipboard::m_hinst = GetModuleHandle(0);
 
@@ -179,7 +181,10 @@ void WindowsClipboard::convertToRfbFormat(const StringStorage *source,
 {
   const TCHAR *srcText = source->getString();
   size_t length = source->getLength();
-  TCHAR *rfbText = new TCHAR[length + 1];
+  if (length > SIZE_MAX - 1) {
+    throw Exception(_T("Integer overflow in clipboard allocation"));
+  }
+  std::vector<TCHAR> rfbText(length + 1);
 
   size_t j = 0;
   for (size_t i = 0; i < length; i++) {
@@ -189,8 +194,7 @@ void WindowsClipboard::convertToRfbFormat(const StringStorage *source,
     }
   }
   rfbText[j] = 0;
-  dest->setString(rfbText);
-  delete[] rfbText;
+  dest->setString(&rfbText.front());
 }
 
 void WindowsClipboard::convertFromRfbFormat(const TCHAR *source,
@@ -204,10 +208,15 @@ void WindowsClipboard::convertFromRfbFormat(const TCHAR *source,
       lfCount++;
     }
   }
-
+  if (lfCount > SIZE_MAX - sourceLen) {
+    throw Exception(_T("Integer overflow in size calculation"));
+  }
   size_t destLen = sourceLen + lfCount;
-  TCHAR *destText = new TCHAR[destLen + 1];
-  int j = 0;
+  if (destLen > SIZE_MAX - 1) {
+    throw Exception(_T("Integer overflow in clipboard allocation"));
+  }
+  std::vector<TCHAR> destText(destLen + 1);
+  size_t j = 0;
   for (size_t i = 0; i < sourceLen; i++) {
     if (source[i] == 0x0a) {
       destText[j] = 0x0d;
@@ -218,6 +227,5 @@ void WindowsClipboard::convertFromRfbFormat(const TCHAR *source,
   }
   destText[j] = 0;
 
-  dest->setString(destText);
-  delete[] destText;
+  dest->setString(&destText.front());
 }

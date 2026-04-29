@@ -37,7 +37,6 @@
 
 #include "CapsContainer.h"
 #include "CoreEventsAdapter.h"
-#include "DispatchDataProvider.h"
 #include "DecoderStore.h"
 #include "FbUpdateNotifier.h"
 #include "ServerMessageListener.h"
@@ -255,8 +254,8 @@ public:
 
   //
   // Wait until all threads have been finished. Always call this function
-  // prior to destroying this object and connected objects (CoreEventsAdapter,
-  // DispatchDataProvider), but only if remote viewer core was actually
+  // prior to destroying this object and connected objects (CoreEventsAdapter),
+  // but only if remote viewer core was actually
   // started.
   //
   // This function does not terminate threads. That can be done by calling
@@ -290,29 +289,6 @@ public:
   // the protocol, and adapter's onNewFrameBuffer() will be called after that.
   //
   void setPixelFormat(const PixelFormat *viewerPixelFormat);
-
-  //
-  // Enable support for Dispatcher software which acts as a proxy and connects
-  // viewers with compatible servers using specially allocated ID numbers.
-  // Connections to Dispatcher are initiated the same way as connections to
-  // normal VNC-compatible servers, all differences between servers and
-  // dispatchers will be handled automatically.
-  //
-  // This function must be called prior to calling start(). It should not be
-  // used with constructors calling start() function implicitly. If this
-  // function has not been called prior to starting the protocol, dispatched
-  // connections will not be supported and protocol incompatibility error will
-  // be returned.
-  //
-  // The argument points to an object that should implement getDispatchData()
-  // function which will be called when actually connecting to a Dispatcher.
-  // That function should return all necessary information for establishing
-  // dispatched connection, including server's ID. See more information in the
-  // DispatchDataProvider class specification.
-  //
-  // If 0 is passed as an argument, support for Dispatcher will be disabled.
-  //
-  void enableDispatching(DispatchDataProvider *src = 0);
 
   //
   // Pause/resume updating the frame buffer.
@@ -602,9 +578,6 @@ private:
   RfbOutputGate *m_output;
 
   CoreEventsAdapter *m_adapter;
-
-  mutable LocalMutex m_dispatchDataProviderLock;
-  DispatchDataProvider *m_dispatchDataProvider;
 
   WatermarksController m_watermarksController;
 

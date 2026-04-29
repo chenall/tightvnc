@@ -57,6 +57,8 @@ void StringStorage::setString(const TCHAR *string)
   }
 
   size_t length = _tcslen(string);
+  if (length == SIZE_MAX)
+    throw Exception(_T("String too large"));
   resizeBuffer(length + 1);
   memcpy(&m_buffer.front(), string, getSize());
 }
@@ -121,6 +123,8 @@ void StringStorage::getSubstring(StringStorage *substr,
 
   size_t length = endIndex - startIndex;
   _ASSERT(length <= getLength());
+  if (length == SIZE_MAX)
+    throw Exception(_T("String too large"));
 
   std::vector<TCHAR> autoBuffer(length + 1);
   TCHAR *buffer = &autoBuffer.front();

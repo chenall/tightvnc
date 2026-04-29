@@ -57,6 +57,9 @@ void AnsiStringStorage::setString(const char *string)
     string = "";
   }
   size_t length = strlen(string);
+  if (length == SIZE_MAX)
+    throw Exception(_T("String too large"));
+
   m_buffer.resize(length + 1);
   memcpy(&m_buffer.front(), string, getSize());
 }
@@ -86,6 +89,11 @@ void AnsiStringStorage::fromStringStorage(const StringStorage *src)
 #ifndef _UNICODE
   setString(src->getString());
 #else
+  size_t rawSize = getSize();
+  const size_t MAX_SAFE_SIZE = INT_MAX - 1024;
+  if (rawSize > MAX_SAFE_SIZE)
+    throw Exception(_T("String too large for conversion"));
+
   // WideCharToMultiByte returns result length including terminating null character	
   int symbolCount = WideCharToMultiByte(CP_ACP, 0, src->getString(), -1, 
                                         NULL, 0, NULL, NULL);
@@ -106,8 +114,13 @@ void AnsiStringStorage::toStringStorage(StringStorage *dst) const
 #ifndef _UNICODE
   dst->setString(getString());
 #else
-  int symbolCount = (int)getSize();
-  _ASSERT(symbolCount == getSize());
+  size_t rawSize = getSize();
+  const size_t MAX_SAFE_SIZE = INT_MAX - 1024;
+  if (rawSize > MAX_SAFE_SIZE)
+    throw Exception(_T("String too large for conversion"));
+
+  int symbolCount = (int)rawSize;
+
   std::vector<WCHAR> unicodeBuffer(symbolCount);
   int result = MultiByteToWideChar(CP_ACP, 0, &m_buffer.front(),
                                    symbolCount,

@@ -97,10 +97,20 @@
       <RemoveExistingProducts After="InstallInitialize" />
 
     <?ifndef SERVER_FREE ?>
+
       <!--<Custom Action="UnregService" After="InstallInitialize">
          If the Server feature is deselected
         <![CDATA[(&Server=2) AND (!Server=3)]]>
       </Custom> -->
+
+      <?if $(var.Platform) = x86 ?>
+        <Custom Action="ControlAppRegCleanup6432" Before="RemoveFiles">REMOVE="ALL" AND VersionNT64</Custom>
+        <Custom Action="ControlAppRegCleanup" Before="RemoveFiles">REMOVE="ALL" AND NOT VersionNT64</Custom>
+      <?else ?>
+        <Custom Action="ControlAppRegCleanup" Before="RemoveFiles">REMOVE="ALL"</Custom>
+      <?endif ?>
+
+
       <Custom Action='SetDataForPasswordsActionSilently'  After="InstallFiles"/>
       <Custom Action='SetDataForViewOnlyPasswordsActionSilently'  After="InstallFiles"/>
       <Custom Action='SetDataForControlPasswordsActionSilently'  After="InstallFiles"/>

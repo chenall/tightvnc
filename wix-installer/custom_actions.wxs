@@ -73,7 +73,18 @@
                   Impersonate="no"
                   Execute="commit"
                   Return="check"/>
-
+    <CustomAction Id="ControlAppRegCleanup" 
+	          Directory="TARGETDIR"
+                  ExeCommand="&quot;[WindowsFolder]System32\reg.exe&quot; delete &quot;HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run&quot; /v &quot;tvncontrol&quot; /f" 
+                  Execute="deferred" 
+                  Return="ignore" 
+                  Impersonate="no" />
+    <CustomAction Id="ControlAppRegCleanup6432" 
+	          Directory="TARGETDIR"
+                  ExeCommand="&quot;[WindowsFolder]SysWOW64\reg.exe&quot; delete &quot;HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run&quot; /v &quot;tvncontrol&quot; /f" 
+                  Execute="deferred" 
+                  Return="ignore" 
+                  Impersonate="no" />
     <?endif?>
 
     <CustomAction Id='AlreadyUpdated' Error='TightVNC has already been updated to $(var.Version) or newer.' />

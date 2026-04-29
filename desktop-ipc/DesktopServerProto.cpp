@@ -53,10 +53,10 @@ void DesktopServerProto::checkPixelFormat(const PixelFormat *pf)
 void DesktopServerProto::checkRectangle(const Rect *rect)
 {
   StringStorage errMess;
-  if (abs(rect->left)   > 32000 ||
-      abs(rect->top)    > 32000 ||
-      abs(rect->right)  > 32000 ||
-      abs(rect->bottom) > 32000 ||
+  if (abs(rect->left)   > 65535 ||
+      abs(rect->top)    > 65535 ||
+      abs(rect->right)  > 65535 ||
+      abs(rect->bottom) > 65535 ||
       !rect->isValid()) {
     errMess.format(_T("Wrong rectangle (%d, %d, %d, %d)"), rect->left,
                                                            rect->top,
@@ -69,8 +69,8 @@ void DesktopServerProto::checkRectangle(const Rect *rect)
 void DesktopServerProto::checkDimension(const Dimension *dim)
 {
   StringStorage errMess;
-  if (abs(dim->width)  > 64000 ||
-      abs(dim->height) > 64000) {
+  if (abs(dim->width)  > 65535 ||
+      abs(dim->height) > 65535) {
     errMess.format(_T("Wrong dimension (%dx%d)"), dim->width,
                                                   dim->height);
     throw Exception(errMess.getString());

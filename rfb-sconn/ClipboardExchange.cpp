@@ -83,7 +83,11 @@ void ClipboardExchange::onRequest(UINT32 reqCode, RfbInputGate *input)
 }
 void ClipboardExchange::onRequestWorker(bool utf8flag, RfbInputGate *input)
 {
-  UINT32 length = input->readUInt32();
+  size_t length = input->readUInt32();
+
+  if (length > SIZE_MAX - 1) {
+    throw Exception(_T("Integer overflow in clipboard allocation"));
+  }
 
   std::vector<char> charBuff(length + 1);
 

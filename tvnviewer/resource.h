@@ -75,7 +75,6 @@
 #define IDS_TB_FULLSCREEN               215
 #define IDS_TB_CONFIGURATION            216
 #define IDD_FS_WARNING                  230
-#define IDD_DISPATCH_ID                 231
 #define IDC_LABEL                       1001
 #define IDC_FILENAME_EDIT               1002
 #define IDC_FILENAME_LABEL              1004

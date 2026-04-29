@@ -66,7 +66,6 @@ RemoteViewerCore::RemoteViewerCore(Logger *logger)
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
   m_decoderStore(&m_logWriter),
   m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter),
-  m_dispatchDataProvider(0),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
 {
@@ -82,7 +81,6 @@ RemoteViewerCore::RemoteViewerCore(const TCHAR *host, UINT16 port,
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
   m_decoderStore(&m_logWriter),
   m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter),
-  m_dispatchDataProvider(0),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
 {
@@ -100,7 +98,6 @@ RemoteViewerCore::RemoteViewerCore(SocketIPv4 *socket,
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
   m_decoderStore(&m_logWriter),
   m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter),
-  m_dispatchDataProvider(0),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
 {
@@ -118,7 +115,6 @@ RemoteViewerCore::RemoteViewerCore(RfbInputGate *input, RfbOutputGate *output,
   m_fbUpdateNotifier(&m_frameBuffer, &m_fbLock, &m_logWriter, &m_watermarksController),
   m_decoderStore(&m_logWriter),
   m_updateRequestSender(&m_fbLock, &m_frameBuffer, &m_logWriter),
-  m_dispatchDataProvider(0),
   m_isTightEnabled(true),
   m_isUtf8ClipboardEnabled(false)
 {
@@ -248,13 +244,6 @@ bool RemoteViewerCore::wasConnected() const
 
 void RemoteViewerCore::stop()
 {
-  {
-    // We should use locking to prevent simultaneous reading and writing of
-    // the m_dispatchDataProvider pointer.
-    AutoLock al(&m_dispatchDataProviderLock);
-    m_dispatchDataProvider = 0;
-  }
-
   m_updateRequestSender.terminate();
 
   m_tcpConnection.close();
@@ -275,17 +264,6 @@ void RemoteViewerCore::setPixelFormat(const PixelFormat *pixelFormat)
   AutoLock al(&m_pixelFormatLock);
   m_isNewPixelFormat = true;
   m_viewerPixelFormat = *pixelFormat;
-}
-
-void RemoteViewerCore::enableDispatching(DispatchDataProvider *src)
-{
-  AutoLock al(&m_startLock);
-  if (!m_wasStarted) {
-    // In other places, we use locking to access this pointer
-    // (see m_dispatchDataProviderLock), but not here, as we assume there is
-    // no concurrent access to this variable prior to calling start().
-    m_dispatchDataProvider = src;
-  }
 }
 
 bool RemoteViewerCore::updatePixelFormat()
@@ -1201,7 +1179,10 @@ void RemoteViewerCore::receiveServerCutText()
   m_input->readUInt16();
   m_input->readUInt8();
 
-  UINT32 length = m_input->readUInt32();
+  size_t length = m_input->readUInt32();
+  if (length > SIZE_MAX - 1) {
+    throw Exception(_T("Integer overflow in clipboard allocation"));
+  }
   std::vector<char> buffer(length + 1);
   m_input->readFully(&buffer.front(), length);
   buffer[length] = '\0';
@@ -1222,6 +1203,12 @@ void RemoteViewerCore::receiveServerCutText()
 void RemoteViewerCore::receiveServerCutTextUtf8()
 {
   UINT32 length = m_input->readUInt32();
+  if (length == 0)
+    return;
+  if (length > SIZE_MAX - 1) {
+    throw Exception(_T("Integer overflow in clipboard allocation"));
+  }
+
   std::vector<char> buffer(length + 1);
   m_input->readFully(&buffer.front(), length);
   buffer[length] = '\0';

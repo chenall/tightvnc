@@ -64,6 +64,13 @@ DWORD WTS::getActiveConsoleSessionId(LogWriter *log)
   return id;
 }
 
+DWORD WTS::getProcessSessionId(LogWriter* log)
+{
+  DWORD id;
+  ProcessIdToSessionId(GetCurrentProcessId(), &id);
+  return id;
+}
+
 DWORD WTS::getRdpSessionId(LogWriter *log)
 {
   AutoLock l(&m_mutex);
@@ -436,22 +443,19 @@ StringStorage WTS::getTokenUserName(HANDLE token) {
     return name;
   }
 
-  BYTE* data = new BYTE[tokenSize];
-  GetTokenInformation(token, TokenUser, data, tokenSize, &tokenSize); // 3- GetTokenInformation
-  TOKEN_USER* pUser = (TOKEN_USER*)data;
+  std::vector<BYTE> data(tokenSize);
+  GetTokenInformation(token, TokenUser, &data.front(), tokenSize, &tokenSize); // 3- GetTokenInformation
+  TOKEN_USER* pUser = (TOKEN_USER*)&data.front();
   PSID pSID = pUser->User.Sid;
   DWORD userSize = 0;
   DWORD domainSize = 0;
   SID_NAME_USE sidName;
   LookupAccountSid(NULL, pSID, NULL, &userSize, NULL, &domainSize, &sidName);
-  TCHAR* user = new TCHAR[userSize + 1];
-  TCHAR* domain = new TCHAR[domainSize + 1];
-  LookupAccountSid(NULL, pSID, user, &userSize, domain, &domainSize, &sidName); 
+  std::vector<TCHAR> user(userSize + 1);
+  std::vector<TCHAR> domain(domainSize + 1);
+  LookupAccountSid(NULL, pSID, &user.front(), &userSize, &domain.front(), &domainSize, &sidName); 
   user[userSize] = _T('\0');
-  name.setString(user);
-  delete[] data;
-  delete[] domain;
-  delete[] user;
+  name.setString(&user.front());
   return name;
 }
 

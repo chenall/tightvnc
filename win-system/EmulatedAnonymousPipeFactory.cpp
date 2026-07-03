@@ -22,11 +22,12 @@
 //-------------------------------------------------------------------------
 //
 
+#define _CRT_RAND_S  // BEFORE <stdlib.h>
+#include <stdlib.h>
 #include "EmulatedAnonymousPipeFactory.h"
 #include "win-system/SecurityAttributes.h"
 #include "win-system/PipeServer.h"
 #include "win-system/PipeClient.h"
-#include <time.h>
 
 EmulatedAnonymousPipeFactory::EmulatedAnonymousPipeFactory(unsigned int bufferSize, LogWriter *log)
 : m_bufferSize(bufferSize),
@@ -68,8 +69,9 @@ void EmulatedAnonymousPipeFactory::generatePipes(NamedPipe **serverPipe, bool se
 
 void EmulatedAnonymousPipeFactory::getUniqPipeName(StringStorage *result)
 {
-  srand((unsigned)time(0));
   for (int i = 0; i < 20; i++) {
-    result->appendChar('a' + rand() % ('z' - 'a'));
+    unsigned int random;
+    rand_s(&random);
+    result->appendChar('a' + random % ('z' - 'a'));
   }
 }

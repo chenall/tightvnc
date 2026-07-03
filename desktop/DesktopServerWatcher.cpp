@@ -22,6 +22,8 @@
 //-------------------------------------------------------------------------
 //
 
+#define _CRT_RAND_S  // BEFORE <stdlib.h>
+#include <stdlib.h>
 #include "DesktopServerWatcher.h"
 #include "win-system/Environment.h"
 #include "util/Exception.h"
@@ -33,8 +35,6 @@
 #include "win-system/WinStaLibrary.h"
 #include "win-system/WinHandles.h"
 #include "win-system/SharedMemory.h"
-
-#include <time.h>
 
 DesktopServerWatcher::DesktopServerWatcher(ReconnectionListener *recListener, LogWriter *log)
 : m_recListener(recListener),
@@ -72,13 +72,17 @@ void DesktopServerWatcher::execute()
 
   AnonymousPipe *ownSidePipeChanTo, *otherSidePipeChanTo,
                 *ownSidePipeChanFrom, *otherSidePipeChanFrom;
+  
+  const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const size_t charset_len = sizeof(charset) - 1;
 
   while (!isTerminating()) {
     try {
       StringStorage shMemName(_T("Global\\"));
-      srand((unsigned)time(0));
       for (int i = 0; i < 20; i++) {
-        shMemName.appendChar('a' + rand() % ('z' - 'a'));
+        unsigned int random;
+        rand_s(&random);
+        shMemName.appendChar(charset[random % charset_len]);
       }
       SharedMemory sharedMemory(shMemName.getString(), 72);
       UINT64 *mem = (UINT64 *)sharedMemory.getMemPointer();
@@ -126,16 +130,16 @@ void DesktopServerWatcher::execute()
 
       // Destroying other side objects
       delete otherSidePipeChanTo;
-      m_log->debug(_T("DesktopServerWatcher::execute(): Destroyed otherSidePipeChanTo"));
       otherSidePipeChanTo = 0;
+      m_log->debug(_T("DesktopServerWatcher::execute(): Destroyed otherSidePipeChanTo"));
       delete otherSidePipeChanFrom;
-      m_log->debug(_T("DesktopServerWatcher::execute(): Destroyed otherSidePipeChanFrom"));
       otherSidePipeChanFrom = 0;
+      m_log->debug(_T("DesktopServerWatcher::execute(): Destroyed otherSidePipeChanFrom"));
 
       m_log->debug(_T("DesktopServerWatcher::execute(): Try to call onReconnect()"));
       m_recListener->onReconnect(ownSidePipeChanTo, ownSidePipeChanFrom);
 
-      m_process->waitForExit();
+      m_process->waitForExit(); // could it throw an exception ?
 
     } catch (Exception &e) {
       // A potentional memory leak. 

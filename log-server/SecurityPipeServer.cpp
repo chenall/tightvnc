@@ -22,6 +22,8 @@
 //-------------------------------------------------------------------------
 //
 
+#define _CRT_RAND_S  // BEFORE <stdlib.h>
+#include <stdlib.h>
 #include "SecurityPipeServer.h"
 #include "win-system/PipeServer.h"
 #include "win-system/PipeClient.h"
@@ -30,7 +32,6 @@
 #include "win-system/Environment.h"
 #include "win-system/WinHandles.h"
 #include "ConnectionTimer.h"
-#include <time.h>
 
 SecurityPipeServer::SecurityPipeServer(Channel *tempPublChan, unsigned int bufferSize)
 : m_secChannel(0),
@@ -58,6 +59,8 @@ Channel *SecurityPipeServer::getChannel()
 
 void SecurityPipeServer::generateSecConnection(Channel *tempPublChan)
 {
+  const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const size_t charset_len = sizeof(charset) - 1;
   NamedPipe *otherSideChannel = 0;
 
   try {
@@ -74,9 +77,10 @@ void SecurityPipeServer::generateSecConnection(Channel *tempPublChan)
 
     // Give to process exclusive pipe handles
     StringStorage randomName;
-    srand((unsigned)time(0));
     for (int i = 0; i < 20; i++) {
-      randomName.appendChar('a' + rand() % ('z' - 'a'));
+      unsigned int random;
+      rand_s(&random);
+      randomName.appendChar(charset[random % charset_len]);
     }
     PipeServer pipeServer(randomName.getString(), m_bufferSize, 0, 1000);
     otherSideChannel = PipeClient::connect(randomName.getString(), m_bufferSize);

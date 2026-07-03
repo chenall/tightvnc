@@ -102,6 +102,7 @@
           Directory="ProgramMenuDir"
           Name="Visit TightVNC Web Site"
           WorkingDirectory='INSTALLDIR'/>
+        <?ifndef VIEWER_FREE ?>
         <Shortcut Id="startmenuViewer"
           Target ="[#viewerEXE]"
           Directory="ProgramMenuDir"
@@ -109,6 +110,7 @@
           WorkingDirectory='INSTALLDIR'
           Icon='viewer.ico'
           IconIndex="0"/>
+        <?endif?>
         <RemoveFolder Id='ProgramMenuDir' On='uninstall' />
         <RegistryValue Root='HKCU' Key='Software\[Manufacturer]\[ProductName]1' Type='string' Value='' KeyPath='yes' />
       </Component>

@@ -22,6 +22,9 @@
 //-------------------------------------------------------------------------
 //
 
+#define _CRT_RAND_S  // BEFORE <stdlib.h>
+#include <stdlib.h>
+
 #include "RfbInitializer.h"
 #include "thread/AutoLock.h"
 #include "rfb/VendorDefs.h"
@@ -33,9 +36,6 @@
 #include "win-system/Environment.h"
 #include "util/AnsiStringStorage.h"
 #include "tvnserver-app/NamingDefs.h"
-
-#include <stdlib.h>
-#include <time.h>
 
 RfbInitializer::RfbInitializer(Channel *stream,
                                ClientAuthListener *extAuthListener,
@@ -170,9 +170,10 @@ void RfbInitializer::doAuth(UINT32 authType)
 void RfbInitializer::doVncAuth()
 {
   UINT8 challenge[16];
-  srand((unsigned)time(0));
   for (int i = 0; i < sizeof(challenge); i++) {
-    challenge[i] = rand() & 0xff;
+    unsigned int random;
+    rand_s(&random);
+    challenge[i] = random & 0xff;
   }
 
   m_output->writeFully(challenge, sizeof(challenge));

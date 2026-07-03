@@ -34,7 +34,8 @@ Win8ScreenDriver::Win8ScreenDriver(UpdateKeeper *updateKeeper,
   m_fbLocalMutex(fbLocalMutex),
   m_updateKeeper(updateKeeper),
   m_updateListener(updateListener),
-  m_detectionEnabled(false)
+  m_detectionEnabled(false),
+  m_drvImpl(0)
 {
   m_log->debug(_T("Win8ScreenDriver creating new Win8ScreenDriverImpl"));
   AutoLock al(&m_drvImplMutex);
@@ -55,7 +56,8 @@ void Win8ScreenDriver::executeDetection()
 {
   AutoLock al(&m_drvImplMutex);
   m_detectionEnabled = true;
-  m_drvImpl->executeDetection();
+  if (m_drvImpl)
+    m_drvImpl->executeDetection();
 }
 
 void Win8ScreenDriver::terminateDetection()
@@ -70,31 +72,41 @@ void Win8ScreenDriver::terminateDetection()
 Dimension Win8ScreenDriver::getScreenDimension()
 {
   AutoLock al(&m_drvImplMutex);
-  return m_drvImpl->getScreenBuffer()->getDimension();
+  if (m_drvImpl)
+    return m_drvImpl->getScreenBuffer()->getDimension();
+  return Dimension();
 }
 
 FrameBuffer *Win8ScreenDriver::getScreenBuffer()
 {
   AutoLock al(&m_drvImplMutex);
-  return m_drvImpl->getScreenBuffer();
+  if (m_drvImpl)
+    return m_drvImpl->getScreenBuffer();
+  throw Exception(_T("getScreenBuffer: no ScreenDriverImpl"));
 }
 
 bool Win8ScreenDriver::grabFb(const Rect *rect)
 {
   AutoLock al(&m_drvImplMutex);
-  return m_drvImpl->grabFb(rect);
+  if (m_drvImpl)
+    return m_drvImpl->grabFb(rect);
+  return false;
 }
 
 bool Win8ScreenDriver::getScreenPropertiesChanged()
 {
   AutoLock al(&m_drvImplMutex);
-  return !m_drvImpl->isValid();
+  if (m_drvImpl)
+    return !m_drvImpl->isValid();
+  return true;
 }
 
 bool Win8ScreenDriver::getScreenSizeChanged()
 {
   AutoLock al(&m_drvImplMutex);
-  return !m_drvImpl->isValid();
+  if (m_drvImpl)
+    return !m_drvImpl->isValid();
+  return true;
 }
 
 bool Win8ScreenDriver::applyNewScreenProperties()
@@ -120,8 +132,11 @@ bool Win8ScreenDriver::applyNewScreenProperties()
 bool Win8ScreenDriver::grabCursorShape(const PixelFormat *pf)
 {
   AutoLock al(&m_drvImplMutex);
-  m_drvImpl->updateCursorShape(&m_cursorShape);
-  return !m_drvImpl->isValid();
+  if (m_drvImpl) {
+    m_drvImpl->updateCursorShape(&m_cursorShape);
+    return !m_drvImpl->isValid();
+  }
+  return false;
 }
 
 const CursorShape *Win8ScreenDriver::getCursorShape()
@@ -132,7 +147,10 @@ const CursorShape *Win8ScreenDriver::getCursorShape()
 Point Win8ScreenDriver::getCursorPosition()
 {
   AutoLock al(&m_drvImplMutex);
-  return m_drvImpl->getCursorPosition();
+  if (m_drvImpl) {
+    return m_drvImpl->getCursorPosition();
+  }
+  return Point();
 }
 
 void Win8ScreenDriver::getCopiedRegion(Rect *copyRect, Point *source)

@@ -55,7 +55,8 @@ bool WindowsClipboard::writeToClipBoard(const TCHAR *text)
     HGLOBAL hglb = GlobalAlloc(GMEM_MOVEABLE, clipSize);
     if (hglb) {
       TCHAR *buff = (TCHAR *)GlobalLock(hglb);
-      memcpy(buff, clipboard.getString(), clipSize);
+      if (buff)
+        memcpy(buff, clipboard.getString(), clipSize);
       GlobalUnlock(hglb);
 
 #ifdef _UNICODE

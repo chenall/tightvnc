@@ -91,7 +91,9 @@ bool WinClipboard::setString(const StringStorage *serverClipboard)
          GlobalFree(m_hndClipboard);
       }
       m_hndClipboard = GlobalAlloc(GMEM_MOVEABLE, dataSize);
-      CopyMemory(GlobalLock(m_hndClipboard), nativeClipboard.getString(), dataSize);
+      TCHAR* dst = (TCHAR*)GlobalLock(m_hndClipboard);
+      if (dst)
+        CopyMemory(dst, nativeClipboard.getString(), dataSize);
       GlobalUnlock(m_hndClipboard);
       SetClipboardData(dataType, m_hndClipboard);
       CloseClipboard();

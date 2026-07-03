@@ -126,10 +126,18 @@ WinD3D11Device &WinD3D11Device::operator = (WinD3D11Device const &src)
 void WinD3D11Device::copy(const WinD3D11Device &src)
 {
   if (this != &src) {
+    if (m_device != 0) {
+      m_device->Release();
+    }
     m_device = src.m_device;
     m_device->AddRef();
+
+    if (m_context != 0) {
+      m_context->Release();
+    }
     m_context = src.m_context;
     m_context->AddRef();
+    m_log = src.m_log;
   }
 }
 

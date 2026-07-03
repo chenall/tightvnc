@@ -23,6 +23,7 @@
 //
 
 #include "WinCursorShapeUtils.h"
+#include <util/Exception.h>
 
 WinCursorShapeUtils::WinCursorShapeUtils()
 {
@@ -160,6 +161,8 @@ void WinCursorShapeUtils::trimTransparent(std::vector<char> *buffer, DXGI_OUTDUP
   UINT hotspotX = (UINT)(shapeInfo->HotSpot.x);
   UINT type = shapeInfo->Type;
 
+  if (height == 0 || width == 0)
+    throw Exception(_T("Wrong DXGI_OUTDUPL_POINTER_SHAPE_INFO"));
   // width 
   const UINT minimumWidth = 16;
 	UINT trimmedWidth = minimumWidth;

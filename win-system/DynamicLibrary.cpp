@@ -46,7 +46,7 @@ DynamicLibrary::~DynamicLibrary()
 
 void DynamicLibrary::init(const TCHAR *filename)
 {
-  m_module = LoadLibrary(filename);
+  m_module = LoadLibraryEx(filename, 0, LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32);
 
   if (m_module == 0) {
     StringStorage errMsg;

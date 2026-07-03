@@ -22,6 +22,9 @@
 //-------------------------------------------------------------------------
 //
 
+#define _CRT_RAND_S  // BEFORE <stdlib.h>
+#include <stdlib.h>
+
 #include "ControlClient.h"
 #include "TvnServer.h"
 #include "OutgoingRfbConnectionThread.h"
@@ -40,7 +43,6 @@
 
 #include "tvnserver/resource.h"
 
-#include <time.h>
 #include "util/AnsiStringStorage.h"
 #include "util/MemUsage.h"
 
@@ -253,9 +255,10 @@ void ControlClient::authMsgRcdv()
   UINT8 challenge[16];
   UINT8 response[16];
 
-  srand((unsigned)time(0));
   for (int i = 0; i < sizeof(challenge); i++) {
-    challenge[i] = rand() & 0xff;
+    unsigned int random;
+    rand_s(&random);
+    challenge[i] = random & 0xff;
   }
 
   m_gate->writeFully(challenge, sizeof(challenge));

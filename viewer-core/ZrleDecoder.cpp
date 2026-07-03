@@ -259,6 +259,9 @@ void ZrleDecoder::readPackedPaletteTile(DataInputStream *input,
           entryByIndex = input->readUInt8();
         }
       }
+      if (color > palette.size() - 1) {
+        throw Exception(_T("Bad data received from the server: ZRLE color index exceeds palette size."));
+      }
 
       size_t count = y * width + x;
       memcpy(&pixels[count * m_bytesPerPixel], &palette[color], m_bytesPerPixel);
@@ -309,7 +312,10 @@ void ZrleDecoder::readPaletteRleTile(DataInputStream *input,
         throw Exception(_T("Bad data received from the server: ZRLE run length is too long in palette RLE tile."));
       }
     }
-    
+    if (color > palette.size() - 1) {
+      throw Exception(_T("Bad data received from the server: ZRLE color index exceeds palette size."));
+    }
+
     char * pixelsPtr = &pixels[indexPixel * m_bytesPerPixel];
     for(size_t i = 0; i < runLength; i++) {
       memcpy(pixelsPtr, &palette[color], m_bytesPerPixel);

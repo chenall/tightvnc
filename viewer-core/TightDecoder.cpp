@@ -290,13 +290,16 @@ void TightDecoder::readCompressedData(RfbInputGate *input,
     decoder->inflate();
 
     size_t size = decoder->getOutputSize();
+    // Every basic filter consumes exactly the declared rectangle's data.
+    // Reject a short block before RGB conversion or drawing can read past it.
+    if (size != expectedLength) {
+      throw Exception(_T("Error in protocol: incorrect decompressed data size (tight-decoder)"));
+    }
     const char *output = decoder->getOutput();
     buffer.resize(size);
     buffer.assign(output, output + size);
   } else {
-    _ASSERT(rawDataLength != 0);
-    m_logWriter->debug(_T("Tight decoder: Length of Raw compressed data is 0"));
-    buffer.resize(0);
+    throw Exception(_T("Error in protocol: empty compressed data (tight-decoder)"));
   }
 }
 

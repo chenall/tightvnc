@@ -27,6 +27,7 @@
 const char *const AuthDefs::SIG_NONE = "NOAUTH__";
 const char *const AuthDefs::SIG_VNC = "VNCAUTH_";
 const char *const AuthDefs::SIG_EXTERNAL = "XTRNAUTH";
+const char *const AuthDefs::SIG_SRP6DUAL = "SRP6DUAL";
 
 UINT32 SecurityDefs::convertFromAuthType(UINT32 authType)
 {

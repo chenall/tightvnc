@@ -146,6 +146,9 @@
     <ClInclude Include="RemoteViewerCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ViewerBufferSize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="RfbClientToServerMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>

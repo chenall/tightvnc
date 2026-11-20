@@ -42,6 +42,7 @@
 #include "RfbSetEncodingsClientMessage.h"
 #include "RfbSetPixelFormatClientMessage.h"
 #include "WatermarksController.h"
+#include "ViewerBufferSize.h"
 
 #include "RawDecoder.h"
 #include "CopyRectDecoder.h"
@@ -778,10 +779,15 @@ int RemoteViewerCore::initAuthentication()
     return AuthDefs::NONE;
   }
 
+  CapsContainer newerViewerAuthCaps;
+  newerViewerAuthCaps.add(AuthDefs::SRP6DUAL, VendorDefs::TIGHTVNC,
+                          AuthDefs::SIG_SRP6DUAL);
+
   m_logWriter.detail(_T("Reading authentication capability..."));
   for (UINT32 i = 0; i < authTypesNumber; i++) {
     RfbCapabilityInfo cap = readCapability();
     m_authCaps.enable(&cap);
+    newerViewerAuthCaps.enable(&cap);
   }
   size_t numEnabled = m_authCaps.numEnabled();
   vector<UINT32> authTypes(numEnabled);
@@ -793,8 +799,12 @@ int RemoteViewerCore::initAuthentication()
 
   m_logWriter.debug(_T("Select authentication capability"));
   if (numEnabled == 0) {
-    throw Exception(_T("No security types supported. ")
-                    _T("Server sent security types, but we do not support any of their."));
+    if (newerViewerAuthCaps.isEnabled(AuthDefs::SRP6DUAL)) {
+      throw Exception(_T("This server requires TightVNC Viewer version 4 or later. ")
+                      _T("To use this Viewer, configure Legacy VNC authentication on the server."));
+    }
+    throw Exception(_T("The server does not offer a compatible authentication method. ")
+                    _T("Check the server's authentication settings."));
   }
   int typeSelected = authTypes[0];
   m_logWriter.detail(_T("Selected type of authentication: %d"), typeSelected);
@@ -809,6 +819,18 @@ int RemoteViewerCore::initAuthentication()
 void RemoteViewerCore::setFbProperties(const Dimension *fbDimension,
                                        const PixelFormat *fbPixelFormat)
 {
+  const int width = fbDimension->width;
+  const int height = fbDimension->height;
+  const int bitsPerPixel = fbPixelFormat->bitsPerPixel;
+  if (width < 0 || height < 0 ||
+      (bitsPerPixel != 8 && bitsPerPixel != 16 && bitsPerPixel != 32)) {
+    throw Exception(_T("Invalid framebuffer properties"));
+  }
+
+  if (!ViewerBufferSize::fitsFrameBuffer(width, height, bitsPerPixel / 8)) {
+    throw Exception(_T("Framebuffer is too large"));
+  }
+
 #ifdef _DEMO_VERSION_
 	m_watermarksController.setNewFbProperties(&fbDimension->getRect(), fbPixelFormat);
 #endif
@@ -1104,6 +1126,11 @@ void RemoteViewerCore::processPseudoEncoding(const Rect *rect,
       UINT16 width = rect->getWidth();
       UINT16 height = rect->getHeight();
       UINT8 bytesPerPixel = m_frameBuffer.getBytesPerPixel();
+
+      // CursorShape may resize once with its previous pixel format (up to 32 bpp).
+      if (!ViewerBufferSize::fitsDecoderBuffer(width, height, 4)) {
+        throw Exception(_T("Rich cursor is too large"));
+      }
 
       vector<UINT8> cursor;
       vector<UINT8> bitmask;

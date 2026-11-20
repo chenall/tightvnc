@@ -23,6 +23,7 @@
 //
 
 #include "TightDecoder.h"
+#include "ViewerBufferSize.h"
 
 #include "rfb/StandardPixelFormatFactory.h"
 
@@ -158,6 +159,11 @@ void TightDecoder::processJpeg(RfbInputGate *input,
                                FrameBuffer *frameBuffer,
                                const Rect *dstRect)
 {
+  if (!ViewerBufferSize::fitsDecoderBuffer(dstRect->getWidth(), dstRect->getHeight(),
+                                            JpegDecompressor::BYTES_PER_PIXEL)) {
+    throw Exception(_T("Tight JPEG rectangle is too large"));
+  }
+
   UINT32 jpegBufLen = readCompactSize(input);
   if (jpegBufLen == 0)
     throw Exception(_T("Error in protocol: empty byffer of jpeg (tight-decoder)"));
